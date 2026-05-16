@@ -11,7 +11,8 @@
     "@casl/ability": "^6.8.1",
     "@saas/eslint-config": "*",
     "@saas/prettier": "*",
-    "@saas/tsconfig": "*"
+    "@saas/tsconfig": "*",
+    "zod": "^4.4.3"
   },
   "eslintConfig": {
     "extends": [
