@@ -140,7 +140,7 @@ Configurações ESLint compartilhadas em [`config/eslint-config/`](config/eslint
 | ----------- | ------------ | ------------------------------------------------------------------- |
 | `next-js`   | `next.js`    | Apps Next.js (base Rocketseat + `eslint-plugin-simple-import-sort`) |
 | `node`      | `node.js`    | Pacotes Node (ex.: `@saas/api`)                                     |
-| `library/*` | `library.js` | Bibliotecas compartilhadas (ex.: `@saas/auth`)                      |
+| `library`   | `library.js` | Bibliotecas compartilhadas (ex.: `@saas/auth`)                      |
 
 Detalhes de uso em [`config/eslint-config/README.md`](config/eslint-config/README.md).
 
