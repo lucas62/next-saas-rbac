@@ -1,159 +1,121 @@
-# Turborepo starter
+# next-saas-rbac
 
-This Turborepo starter is maintained by the Turborepo core team.
+Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm. Este repositório centraliza configurações compartilhadas de ESLint, Prettier e TypeScript em `config/`. As pastas `apps/` e `packages/` estão reservadas para aplicações e bibliotecas que serão adicionadas ao projeto.
 
-## Using this example
+**Requisitos:** Node.js `>=18` · npm `11.11.0`
 
-Run the following command:
+## Pré-requisitos
 
-```sh
-npx create-turbo@latest
+| Item    | Versão                           |
+| ------- | -------------------------------- |
+| Node.js | `>=18` (ver `engines` na raiz)   |
+| npm     | `11.11.0` (ver `packageManager`) |
+
+Recomenda-se habilitar o [Corepack](https://nodejs.org/api/corepack.html) para usar a versão de npm definida no repositório:
+
+```bash
+corepack enable
 ```
 
-## What's inside?
+Instale as dependências **sempre na raiz** do monorepo. Dependências entre pacotes internos usam `"*"` (por exemplo, `@saas/prettier` em `config/eslint-config`), e não o protocolo `workspace:*`, por compatibilidade com o resolver do npm 11.
 
-This Turborepo includes the following packages/apps:
+## Primeiros passos
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+git clone <url-do-repositorio>
+cd next-saas-rbac
+corepack enable   # opcional
+npm install
 ```
 
-Without global `turbo`, use your package manager:
+As pastas `apps/` e `packages/` ainda estão vazias. Por isso, `npm run dev` e os demais scripts do Turborepo só passarão a executar tarefas quando existirem workspaces com os scripts correspondentes.
 
-```sh
-cd my-turborepo
-npx turbo build
-npm dlx turbo build
-npm exec turbo build
+## Scripts
+
+Comandos disponíveis na raiz ([`package.json`](package.json)):
+
+| Script        | Comando               | Observação                                                        |
+| ------------- | --------------------- | ----------------------------------------------------------------- |
+| `dev`         | `npm run dev`         | Executa `turbo run dev` nos workspaces que definirem a task `dev` |
+| `build`       | `npm run build`       | Executa `turbo run build` nos workspaces que definirem `build`    |
+| `lint`        | `npm run lint`        | Executa `turbo run lint` nos workspaces que definirem `lint`      |
+| `check-types` | `npm run check-types` | Executa `turbo run check-types` nos workspaces com essa task      |
+
+Quando houver vários pacotes, é possível filtrar uma task com o Turborepo:
+
+```bash
+npx turbo run build --filter=<nome-do-pacote>
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Estrutura do monorepo
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+```mermaid
+flowchart TB
+  root[next-saas-rbac]
+  root --> apps[apps/*]
+  root --> packages[packages/*]
+  root --> config[config/*]
+  config --> eslint["@saas/eslint-config"]
+  config --> prettier["@saas/prettier"]
+  config --> tsconfig["@saas/tsconfig"]
 ```
 
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-npm exec turbo build --filter=docs
-npm exec turbo build --filter=docs
+```
+.
+├── apps/                    # reservado para aplicações (vazio)
+├── packages/                # reservado para bibliotecas (vazio)
+├── config/
+│   ├── eslint-config/       # @saas/eslint-config
+│   ├── prettier/            # @saas/prettier
+│   └── typescript-config/   # @saas/tsconfig
+├── package.json
+└── turbo.json
 ```
 
-### Develop
+Workspaces npm definidos na raiz: `apps/*`, `packages/*`, `config/*`.
 
-To develop all apps and packages, run the following command:
+## Pacotes compartilhados (`config/`)
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### `@saas/prettier`
 
-```sh
-cd my-turborepo
-turbo dev
+Configuração central do Prettier em [`config/prettier/index.mjs`](config/prettier/index.mjs), com Prettier 3 e `prettier-plugin-tailwindcss`.
+
+A raiz do repositório referencia esse pacote com `"prettier": "@saas/prettier"` no [`package.json`](package.json).
+
+Para verificar a formatação após `npm install`:
+
+```bash
+npx prettier --check .
 ```
 
-Without global `turbo`, use your package manager:
+### `@saas/eslint-config`
 
-```sh
-cd my-turborepo
-npx turbo dev
-npm exec turbo dev
-npm exec turbo dev
-```
+Configurações ESLint compartilhadas em [`config/eslint-config/`](config/eslint-config/). Exports do pacote:
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+| Export      | Arquivo      | Uso                                                                 |
+| ----------- | ------------ | ------------------------------------------------------------------- |
+| `next-js`   | `next.js`    | Apps Next.js (base Rocketseat + `eslint-plugin-simple-import-sort`) |
+| `node`      | `node.js`    | Pacotes Node                                                        |
+| `library/*` | `library.js` | Bibliotecas compartilhadas                                          |
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Detalhes de uso em [`config/eslint-config/README.md`](config/eslint-config/README.md).
 
-```sh
-turbo dev --filter=web
-```
+### `@saas/tsconfig`
 
-Without global `turbo`:
+Pacote reservado para `tsconfig` base do monorepo ([`config/typescript-config/package.json`](config/typescript-config/package.json)). Os arquivos de configuração TypeScript serão adicionados aqui quando existirem apps e packages no repositório.
 
-```sh
-npx turbo dev --filter=web
-npm exec turbo dev --filter=web
-npm exec turbo dev --filter=web
-```
+## Turborepo
 
-### Remote Caching
+O arquivo [`turbo.json`](turbo.json) define as tasks:
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+- **`build`** — depende de `^build` nos pacotes upstream; saída em `.next/**` (exceto cache).
+- **`dev`** — persistente, sem cache.
+- **`lint`** e **`check-types`** — dependem das mesmas tasks nos pacotes upstream.
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## Variáveis de ambiente
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+Arquivos `.env` e variantes (`.env.local`, etc.) estão no [`.gitignore`](.gitignore) e não devem ser commitados. Quando aplicações forem adicionadas em `apps/`, documente as variáveis necessárias no README de cada app.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## Licença
 
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-npm exec turbo login
-npm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-npm exec turbo link
-npm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Licença a definir.
