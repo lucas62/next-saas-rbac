@@ -1,29 +1,30 @@
 import {
   AbilityBuilder,
-  createMongoAbility,
   CreateAbility,
+  createMongoAbility,
   MongoAbility,
 } from '@casl/ability'
-import { User } from './models/user';
-import { permissions } from './permissions';
-import { ProjectSubject } from './subjects/projects';
-import { UserSubject } from './subjects/users';
 
-type AppAbilities = UserSubject | ProjectSubject | ['manage', 'all'];
+import { User } from './models/user'
+import { permissions } from './permissions'
+import { ProjectSubject } from './subjects/projects'
+import { UserSubject } from './subjects/users'
 
-export type AppAbility = MongoAbility<AppAbilities>;
-export const createAppAbility = createMongoAbility as CreateAbility<AppAbility>;
+type AppAbilities = UserSubject | ProjectSubject | ['manage', 'all']
+
+export type AppAbility = MongoAbility<AppAbilities>
+export const createAppAbility = createMongoAbility as CreateAbility<AppAbility>
 
 export function defineAbilityFor(user: User) {
-    const builder = new AbilityBuilder<AppAbility>(createAppAbility);
+  const builder = new AbilityBuilder<AppAbility>(createAppAbility)
 
-    if (typeof permissions[user.role] !== 'function') {
-        throw new Error(`Permissions for role ${user.role} not found`);
-    }
+  if (typeof permissions[user.role] !== 'function') {
+    throw new Error(`Permissions for role ${user.role} not found`)
+  }
 
-    permissions[user.role](user, builder);
+  permissions[user.role](user, builder)
 
-    const ability = builder.build();
+  const ability = builder.build()
 
-    return ability;
+  return ability
 }
