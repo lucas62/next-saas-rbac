@@ -10,6 +10,7 @@ module.exports = {
         "simple-import-sort",
     ],
     rules: {
-        "simple-import-sort/imports": "error"
+        "simple-import-sort/imports": "error",
+        "prettier/prettier": ["error", {}, { "usePrettierrc": true }],
     }
 }
