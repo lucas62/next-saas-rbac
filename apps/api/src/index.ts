@@ -1,10 +1,7 @@
-import { ability } from '@saas/auth';
+import { defineAbilityFor } from '@saas/auth';
 
-const userCanInviteSomeoneElse = ability.can('invite', 'User');
-const userCanDeleteSomeoneElse = ability.can('delete', 'User');
+const ability = defineAbilityFor({ role: 'MEMBER' });
 
-const userCannotDeleteOtherUser = ability.cannot('delete', 'User');
-
-console.log(userCanInviteSomeoneElse);
-console.log(userCanDeleteSomeoneElse);
-console.log(userCannotDeleteOtherUser);
+console.log(ability.can('invite', 'User'));
+console.log(ability.can('delete', 'User'));
+console.log(ability.cannot('delete', 'User'));
