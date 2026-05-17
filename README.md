@@ -1,15 +1,16 @@
 # next-saas-rbac
 
-Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote.
+Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
 
-**Requisitos:** Node.js `>=18` · npm `11.11.0`
+**Requisitos:** Node.js `>=18` · npm `11.11.0` · [Docker](https://www.docker.com/) (para o banco local)
 
 ## Pré-requisitos
 
-| Item    | Versão                           |
-| ------- | -------------------------------- |
-| Node.js | `>=18` (ver `engines` na raiz)   |
-| npm     | `11.11.0` (ver `packageManager`) |
+| Item       | Versão                           |
+| ---------- | -------------------------------- |
+| Node.js    | `>=18` (ver `engines` na raiz)   |
+| npm        | `11.11.0` (ver `packageManager`) |
+| Docker     | Para subir o PostgreSQL local    |
 
 Recomenda-se habilitar o [Corepack](https://nodejs.org/api/corepack.html) para usar a versão de npm definida no repositório:
 
@@ -26,7 +27,33 @@ git clone <url-do-repositorio>
 cd next-saas-rbac
 corepack enable   # opcional
 npm install
-npm run dev       # inicia os workspaces com task dev (ex.: @saas/api)
+```
+
+### Banco de dados
+
+O PostgreSQL sobe via Docker Compose na raiz do repositório:
+
+```bash
+docker compose up -d
+```
+
+Crie o arquivo `apps/api/.env` com a URL de conexão (credenciais alinhadas ao [`docker-compose.yml`](docker-compose.yml)):
+
+```env
+DATABASE_URL="postgresql://docker:docker@localhost:5432/next-saas"
+```
+
+Gere o client Prisma e aplique as migrations:
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+### Desenvolvimento
+
+```bash
+npm run dev       # inicia os workspaces com task dev (ex.: @saas/api na porta 3333)
 ```
 
 Para rodar apenas a API:
@@ -35,21 +62,32 @@ Para rodar apenas a API:
 npx turbo run dev --filter=@saas/api
 ```
 
+A API escuta em `http://localhost:3333` (ver [`apps/api/src/http/server.ts`](apps/api/src/http/server.ts)).
+
 ## Scripts
 
 Comandos disponíveis na raiz ([`package.json`](package.json)):
 
-| Script        | Comando               | Observação                                                        |
-| ------------- | --------------------- | ----------------------------------------------------------------- |
-| `dev`         | `npm run dev`         | Executa `turbo run dev` nos workspaces que definirem a task `dev` |
-| `build`       | `npm run build`       | Executa `turbo run build` nos workspaces que definirem `build`    |
-| `lint`        | `npm run lint`        | Executa `turbo run lint` nos workspaces que definirem `lint`      |
-| `check-types` | `npm run check-types` | Executa `turbo run check-types` nos workspaces com essa task      |
+| Script          | Comando                 | Observação                                                        |
+| --------------- | ----------------------- | ----------------------------------------------------------------- |
+| `dev`           | `npm run dev`           | Executa `turbo run dev` nos workspaces que definirem a task `dev` |
+| `build`         | `npm run build`         | Executa `turbo run build` nos workspaces que definirem `build`    |
+| `lint`          | `npm run lint`          | Executa `turbo run lint` nos workspaces que definirem `lint`      |
+| `check-types`   | `npm run check-types`   | Executa `turbo run check-types` nos workspaces com essa task      |
+| `db:generate`   | `npm run db:generate`   | Gera o Prisma Client em `@saas/api`                               |
+| `db:migrate`    | `npm run db:migrate`    | Executa `prisma migrate dev` em `@saas/api`                       |
 
 Para filtrar uma task em um pacote específico:
 
 ```bash
 npx turbo run build --filter=@saas/api
+```
+
+Scripts de banco também podem ser executados no workspace da API:
+
+```bash
+npm run db:generate --workspace=@saas/api
+npm run db:migrate --workspace=@saas/api
 ```
 
 ## Estrutura do monorepo
@@ -63,6 +101,7 @@ flowchart TB
   apps --> api["@saas/api"]
   packages --> auth["@saas/auth"]
   api --> auth
+  api --> db[(PostgreSQL)]
   config --> eslint["@saas/eslint-config"]
   config --> prettier["@saas/prettier"]
   config --> tsconfig["@saas/tsconfig"]
@@ -71,13 +110,16 @@ flowchart TB
 ```
 .
 ├── apps/
-│   └── api/                 # @saas/api — API Node (tsx)
+│   └── api/                 # @saas/api — API Fastify + Prisma
+│       ├── prisma/          # schema e migrations
+│       └── src/http/        # servidor e rotas HTTP
 ├── packages/
 │   └── auth/                # @saas/auth — RBAC com CASL
 ├── config/
 │   ├── eslint-config/       # @saas/eslint-config
 │   ├── prettier/            # @saas/prettier
 │   └── typescript-config/   # @saas/tsconfig
+├── docker-compose.yml       # PostgreSQL local
 ├── package.json
 └── turbo.json
 ```
@@ -88,7 +130,33 @@ Workspaces npm definidos na raiz: `apps/*`, `packages/*`, `config/*`.
 
 ### `@saas/api`
 
-API Node em [`apps/api/`](apps/api/). Usa `tsx` em modo watch no script `dev` e depende de `@saas/auth` para checagem de permissões.
+API HTTP com [Fastify](https://fastify.dev/), validação via [fastify-type-provider-zod](https://github.com/turkerdev/fastify-type-provider-zod) e persistência com Prisma 7 em [`apps/api/`](apps/api/).
+
+| Caminho | Descrição |
+| ------- | --------- |
+| [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`) |
+| [`prisma/schema.prisma`](apps/api/prisma/schema.prisma) | Modelos do banco |
+| [`prisma.config.ts`](apps/api/prisma.config.ts) | Configuração do Prisma CLI (`DATABASE_URL`) |
+
+#### Modelos (Prisma)
+
+| Modelo           | Descrição (resumo)                                      |
+| ---------------- | ------------------------------------------------------- |
+| `User`           | Usuário da plataforma                                   |
+| `Token`          | Tokens (ex.: recuperação de senha)                      |
+| `Account`        | Contas OAuth (`GITHUB`)                                 |
+| `Organization`   | Organização multi-tenant                                |
+| `Member`         | Membro de organização com `Role`                        |
+| `Invite`         | Convite pendente para organização                       |
+| `Project`        | Projeto vinculado a organização e dono                  |
+
+Papéis no banco (`Role`): `ADMIN`, `MEMBER`, `BILLING` — alinhados ao pacote `@saas/auth`.
+
+#### Rotas HTTP (inicial)
+
+| Método | Rota     | Descrição              |
+| ------ | -------- | ---------------------- |
+| `POST` | `/users` | Criação de conta       |
 
 ```bash
 npx turbo run dev --filter=@saas/api
@@ -146,7 +214,7 @@ ability.can('get', project);       // true
 ability.can('delete', project);    // true (owner)
 ```
 
-Exemplo completo em [`apps/api/src/index.ts`](apps/api/src/index.ts).
+Implementação de referência em [`packages/auth/src/index.ts`](packages/auth/src/index.ts).
 
 ## Pacotes compartilhados (`config/`)
 
@@ -195,7 +263,19 @@ O arquivo [`turbo.json`](turbo.json) define as tasks:
 
 ## Variáveis de ambiente
 
-Arquivos `.env` e variantes (`.env.local`, etc.) estão no [`.gitignore`](.gitignore) e não devem ser commitados. Quando novas aplicações forem adicionadas em `apps/`, documente as variáveis necessárias no README de cada app.
+Arquivos `.env` não são versionados (ver [`.gitignore`](.gitignore)).
+
+### `@saas/api`
+
+| Variável        | Obrigatória | Descrição |
+| --------------- | ----------- | --------- |
+| `DATABASE_URL`  | Sim         | URL PostgreSQL usada pelo Prisma (`prisma.config.ts`) |
+
+Exemplo para desenvolvimento local com o `docker-compose.yml` do repositório:
+
+```env
+DATABASE_URL="postgresql://docker:docker@localhost:5432/next-saas"
+```
 
 ## Licença
 
