@@ -98,25 +98,55 @@ npx turbo run dev --filter=@saas/api
 
 ### `@saas/auth`
 
-Biblioteca de autorização com [CASL](https://casl.js.org/) em [`packages/auth/`](packages/auth/).
+Biblioteca de autorização com [CASL](https://casl.js.org/) e tipagem com [Zod](https://zod.dev/) em [`packages/auth/`](packages/auth/).
 
-- **`defineAbilityFor(user)`** — monta a ability a partir do papel do usuário (`ADMIN` ou `MEMBER`).
-- **Papéis e permissões** — definidos em [`permissions.ts`](packages/auth/src/permissions.ts):
-  - `ADMIN`: `manage` em `all`
-  - `MEMBER`: `invite` em `User`
+#### API principal
 
-Ações suportadas: `manage`, `invite`, `delete`. Subjects: `User`, `all`.
+- **`defineAbilityFor(user)`** — monta a `AppAbility` a partir do `id` e do `role` do usuário.
+- **Schemas exportados** — `userSchema`, `projectSchema`, `organizationSchema` (modelos com `__typename` para checagens em instâncias).
 
-Exemplo de uso (como em [`apps/api/src/index.ts`](apps/api/src/index.ts)):
+#### Papéis
+
+| Papel     | Permissões (resumo) |
+| --------- | ------------------- |
+| `ADMIN`   | `manage` em `all`, exceto `transfer_ownership` e `update` em `Organization` (permitidos apenas quando `ownerId` é o próprio usuário) |
+| `MEMBER`  | `get` em `User`; `create` e `get` em `Project`; `update` e `delete` em `Project` quando `ownerId` é o próprio usuário |
+| `BILLING` | `manage` em `Billing` |
+
+Regras completas em [`permissions.ts`](packages/auth/src/permissions.ts). Papéis válidos em [`roles.ts`](packages/auth/src/roles.ts).
+
+#### Subjects e ações
+
+| Subject        | Ações |
+| -------------- | ----- |
+| `User`         | `manage`, `get`, `update`, `delete` |
+| `Project`      | `manage`, `get`, `create`, `update`, `delete` |
+| `Organization` | `manage`, `update`, `delete`, `transfer_ownership` |
+| `Invite`       | `manage`, `get`, `create`, `delete` |
+| `Billing`      | `manage`, `get`, `export` |
+| `all`          | `manage` (apenas `ADMIN`) |
+
+Subjects tipados em [`packages/auth/src/subjects/`](packages/auth/src/subjects/). Modelos com condições de campo (ex.: `ownerId`) em [`packages/auth/src/models/`](packages/auth/src/models/).
+
+Para checar permissão sobre um recurso específico, passe a instância parseada pelo schema (o `detectSubjectType` usa `__typename`):
 
 ```ts
-import { defineAbilityFor } from '@saas/auth';
+import { defineAbilityFor, projectSchema } from '@saas/auth';
 
-const ability = defineAbilityFor({ role: 'MEMBER' });
+const ability = defineAbilityFor({ id: 'user-1', role: 'MEMBER' });
 
-ability.can('invite', 'User');   // true
-ability.can('delete', 'User');   // false
+const project = projectSchema.parse({
+  id: 'project-1',
+  ownerId: 'user-1',
+});
+
+ability.can('get', 'User');        // true
+ability.can('delete', 'User');     // false
+ability.can('get', project);       // true
+ability.can('delete', project);    // true (owner)
 ```
+
+Exemplo completo em [`apps/api/src/index.ts`](apps/api/src/index.ts).
 
 ## Pacotes compartilhados (`config/`)
 
