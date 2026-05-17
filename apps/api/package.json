@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/http/server.ts"
+    "dev": "tsx watch src/http/server.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
+    "@prisma/client": "^7.8.0",
+    "dotenv": "^16.5.0",
     "@saas/auth": "*",
     "fastify": "^5.8.5",
     "fastify-type-provider-zod": "^6.1.0",
@@ -17,6 +21,7 @@
     "@saas/prettier": "*",
     "@saas/tsconfig": "*",
     "@types/node": "^25.8.0",
+    "prisma": "^7.8.0",
     "tsx": "^4.22.0"
   },
   "prettier": "@saas/prettier",
