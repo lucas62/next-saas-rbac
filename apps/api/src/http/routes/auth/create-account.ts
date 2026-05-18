@@ -10,11 +10,27 @@ export function createAccount(app: FastifyInstance) {
     '/users',
     {
       schema: {
+        summary: 'Create a new user',
+        description:
+          'Create a new user with the given name, email, and password',
+        tags: ['auth'],
         body: z.object({
           name: z.string().min(1),
-          email: z.email().min(1),
+          email: z.email(),
           password: z.string().min(6),
         }),
+        response: {
+          201: z.object({
+            message: z.string({
+              message: 'User created successfully',
+            }),
+          }),
+          400: z.object({
+            message: z.string({
+              message: 'User with same email already exists',
+            }),
+          }),
+        },
       },
     },
     async (request, reply) => {
