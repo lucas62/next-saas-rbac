@@ -1,6 +1,6 @@
 # next-saas-rbac
 
-Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
+Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote, expõe rotas HTTP com documentação OpenAPI em `/docs` e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
 
 **Requisitos:** Node.js `>=18` · npm `11.11.0` · [Docker](https://www.docker.com/) (para o banco local)
 
@@ -78,6 +78,8 @@ npx turbo run dev --filter=@saas/api
 
 A API escuta em `http://localhost:3333` (ver [`apps/api/src/http/server.ts`](apps/api/src/http/server.ts)).
 
+Documentação interativa OpenAPI (Swagger UI): [`http://localhost:3333/docs`](http://localhost:3333/docs).
+
 ## Scripts
 
 Comandos disponíveis na raiz ([`package.json`](package.json)):
@@ -131,8 +133,8 @@ flowchart TB
 │   └── api/                 # @saas/api — API Fastify + Prisma
 │       ├── prisma/          # schema, migrations e seeds
 │       └── src/
-│           ├── http/        # servidor e rotas HTTP
-│           └── lib/           # cliente Prisma compartilhado
+│           ├── http/        # servidor, rotas (ex.: auth/) e Swagger UI
+│           └── lib/         # cliente Prisma compartilhado
 ├── packages/
 │   └── auth/                # @saas/auth — RBAC com CASL
 ├── config/
@@ -150,17 +152,18 @@ Workspaces npm definidos na raiz: `apps/*`, `packages/*`, `config/*`.
 
 ### `@saas/api`
 
-API HTTP com [Fastify](https://fastify.dev/), validação via [fastify-type-provider-zod](https://github.com/turkerdev/fastify-type-provider-zod) e persistência com Prisma 7 em [`apps/api/`](apps/api/).
+API HTTP com [Fastify](https://fastify.dev/), validação e schemas OpenAPI via [fastify-type-provider-zod](https://github.com/turkerdev/fastify-type-provider-zod), documentação com [@fastify/swagger](https://github.com/fastify/fastify-swagger) + [@fastify/swagger-ui](https://github.com/fastify/fastify-swagger-ui), [CORS](https://github.com/fastify/fastify-cors) habilitado e persistência com Prisma 7 em [`apps/api/`](apps/api/).
 
 | Caminho | Descrição |
 | ------- | --------- |
-| [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`) |
+| [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`, Swagger em `/docs`, CORS) |
+| [`src/http/routes/`](apps/api/src/http/routes/) | Rotas HTTP agrupadas por domínio |
 | [`src/lib/prisma.ts`](apps/api/src/lib/prisma.ts) | Cliente Prisma com adapter `@prisma/adapter-pg` |
 | [`prisma/schema.prisma`](apps/api/prisma/schema.prisma) | Modelos do banco |
 | [`prisma/seeds.ts`](apps/api/prisma/seeds.ts) | Seed de desenvolvimento (organizações por papel) |
 | [`prisma.config.ts`](apps/api/prisma.config.ts) | Configuração do Prisma CLI (`DATABASE_URL`) |
 
-O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed.
+O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed. Com o servidor em execução, a especificação OpenAPI e o Swagger UI ficam disponíveis em `/docs`.
 
 #### Modelos (Prisma)
 
@@ -190,11 +193,28 @@ Cada organização inclui membros, projetos com `ownerId` variado e metadados ge
 
 #### Rotas HTTP (inicial)
 
-| Método | Rota     | Descrição              |
-| ------ | -------- | ---------------------- |
-| `POST` | `/users` | Criação de conta (nome, e-mail, senha com bcrypt) |
+| Método | Rota     | Tag OpenAPI | Descrição |
+| ------ | -------- | ----------- | --------- |
+| `POST` | `/users` | `auth`      | Criação de conta (nome, e-mail, senha com bcrypt) |
 
-Exemplo:
+**`POST /users`** — corpo validado com Zod:
+
+| Campo      | Regras                          |
+| ---------- | ------------------------------- |
+| `name`     | string, mínimo 1 caractere      |
+| `email`    | e-mail válido                   |
+| `password` | string, mínimo 6 caracteres     |
+
+Respostas:
+
+| Status | Corpo (exemplo)                              | Quando |
+| ------ | -------------------------------------------- | ------ |
+| `201`  | `{ "message": "User created successfully" }` | Usuário criado |
+| `400`  | `{ "message": "User with same email already exists" }` | E-mail já cadastrado |
+
+Implementação em [`src/http/routes/auth/create-account.ts`](apps/api/src/http/routes/auth/create-account.ts).
+
+Exemplo com `curl`:
 
 ```bash
 curl -X POST http://localhost:3333/users \
@@ -202,9 +222,7 @@ curl -X POST http://localhost:3333/users \
   -d '{"name":"Jane","email":"jane@example.com","password":"secret123"}'
 ```
 
-```bash
-npx turbo run dev --filter=@saas/api
-```
+Alternativa: abra [`http://localhost:3333/docs`](http://localhost:3333/docs) e execute a operação pela interface Swagger.
 
 ## Pacotes (`packages/`)
 
