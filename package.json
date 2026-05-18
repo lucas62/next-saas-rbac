@@ -7,7 +7,9 @@
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "db:generate": "npm run db:generate --workspace=@saas/api",
-    "db:migrate": "npm run db:migrate --workspace=@saas/api"
+    "db:migrate": "npm run db:migrate --workspace=@saas/api",
+    "db:studio": "npm run db:studio --workspace=@saas/api",
+    "db:seed": "npm run db:seed --workspace=@saas/api"
   },
   "prettier": "@saas/prettier",
   "devDependencies": {

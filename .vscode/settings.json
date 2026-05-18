@@ -1,4 +1,7 @@
 {
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
   "typescript.format.enable": false,
   "javascript.format.enable": false,
   "editor.formatOnSave": true,
