@@ -50,6 +50,20 @@ npm run db:generate
 npm run db:migrate
 ```
 
+Opcionalmente, popule o banco com dados de desenvolvimento (organizações, membros, projetos e usuários de teste):
+
+```bash
+npm run db:seed
+```
+
+O seed limpa as tabelas e recria o cenário. O usuário principal usa e-mail `john.doe@example.com` e senha `123456` (demais usuários têm e-mails gerados pelo Faker).
+
+Para inspecionar o banco com interface visual:
+
+```bash
+npm run db:studio
+```
+
 ### Desenvolvimento
 
 ```bash
@@ -76,6 +90,8 @@ Comandos disponíveis na raiz ([`package.json`](package.json)):
 | `check-types`   | `npm run check-types`   | Executa `turbo run check-types` nos workspaces com essa task      |
 | `db:generate`   | `npm run db:generate`   | Gera o Prisma Client em `@saas/api`                               |
 | `db:migrate`    | `npm run db:migrate`    | Executa `prisma migrate dev` em `@saas/api`                       |
+| `db:seed`       | `npm run db:seed`       | Gera o client e executa o seed em [`apps/api/prisma/seeds.ts`](apps/api/prisma/seeds.ts) |
+| `db:studio`     | `npm run db:studio`     | Abre o Prisma Studio em `@saas/api`                               |
 
 Para filtrar uma task em um pacote específico:
 
@@ -88,6 +104,8 @@ Scripts de banco também podem ser executados no workspace da API:
 ```bash
 npm run db:generate --workspace=@saas/api
 npm run db:migrate --workspace=@saas/api
+npm run db:seed --workspace=@saas/api
+npm run db:studio --workspace=@saas/api
 ```
 
 ## Estrutura do monorepo
@@ -111,8 +129,10 @@ flowchart TB
 .
 ├── apps/
 │   └── api/                 # @saas/api — API Fastify + Prisma
-│       ├── prisma/          # schema e migrations
-│       └── src/http/        # servidor e rotas HTTP
+│       ├── prisma/          # schema, migrations e seeds
+│       └── src/
+│           ├── http/        # servidor e rotas HTTP
+│           └── lib/           # cliente Prisma compartilhado
 ├── packages/
 │   └── auth/                # @saas/auth — RBAC com CASL
 ├── config/
@@ -135,8 +155,12 @@ API HTTP com [Fastify](https://fastify.dev/), validação via [fastify-type-prov
 | Caminho | Descrição |
 | ------- | --------- |
 | [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`) |
+| [`src/lib/prisma.ts`](apps/api/src/lib/prisma.ts) | Cliente Prisma com adapter `@prisma/adapter-pg` |
 | [`prisma/schema.prisma`](apps/api/prisma/schema.prisma) | Modelos do banco |
+| [`prisma/seeds.ts`](apps/api/prisma/seeds.ts) | Seed de desenvolvimento (organizações por papel) |
 | [`prisma.config.ts`](apps/api/prisma.config.ts) | Configuração do Prisma CLI (`DATABASE_URL`) |
+
+O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed.
 
 #### Modelos (Prisma)
 
@@ -145,18 +169,38 @@ API HTTP com [Fastify](https://fastify.dev/), validação via [fastify-type-prov
 | `User`           | Usuário da plataforma                                   |
 | `Token`          | Tokens (ex.: recuperação de senha)                      |
 | `Account`        | Contas OAuth (`GITHUB`)                                 |
-| `Organization`   | Organização multi-tenant                                |
+| `Organization`   | Organização multi-tenant com `ownerId`                  |
 | `Member`         | Membro de organização com `Role`                        |
 | `Invite`         | Convite pendente para organização                       |
-| `Project`        | Projeto vinculado a organização e dono                  |
+| `Project`        | Projeto vinculado a organização com `ownerId`           |
 
 Papéis no banco (`Role`): `ADMIN`, `MEMBER`, `BILLING` — alinhados ao pacote `@saas/auth`.
+
+#### Seed de desenvolvimento
+
+O comando `npm run db:seed` executa [`prisma/seeds.ts`](apps/api/prisma/seeds.ts), que recria:
+
+- 3 usuários (incluindo `john.doe@example.com`, senha `123456`)
+- 3 organizações com papéis distintos para o mesmo usuário em cada cenário:
+  - **Acme Inc (Admin)** — `john.doe@example.com` como `ADMIN`
+  - **Acme Inc (Member)** — `john.doe@example.com` como `MEMBER`
+  - **Acme Inc (Billing)** — `john.doe@example.com` como `BILLING`
+
+Cada organização inclui membros, projetos com `ownerId` variado e metadados gerados com Faker.
 
 #### Rotas HTTP (inicial)
 
 | Método | Rota     | Descrição              |
 | ------ | -------- | ---------------------- |
-| `POST` | `/users` | Criação de conta       |
+| `POST` | `/users` | Criação de conta (nome, e-mail, senha com bcrypt) |
+
+Exemplo:
+
+```bash
+curl -X POST http://localhost:3333/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Jane","email":"jane@example.com","password":"secret123"}'
+```
 
 ```bash
 npx turbo run dev --filter=@saas/api
