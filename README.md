@@ -1,6 +1,6 @@
 # next-saas-rbac
 
-Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote, expõe rotas de autenticação (cadastro, login JWT, perfil e recuperação de senha), documentação OpenAPI em `/docs` e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
+Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote, valida variáveis de ambiente via `@saas/env`, expõe rotas de autenticação (cadastro, login com senha ou GitHub, perfil e recuperação de senha), rotas de organizações com checagem de permissões, documentação OpenAPI em `/docs` e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
 
 **Requisitos:** Node.js `>=18` · npm `11.11.0` · [Docker](https://www.docker.com/) (para o banco local)
 
@@ -37,11 +37,21 @@ O PostgreSQL sobe via Docker Compose na raiz do repositório:
 docker compose up -d
 ```
 
-Crie o arquivo `apps/api/.env` (credenciais do banco alinhadas ao [`docker-compose.yml`](docker-compose.yml)):
+Crie o arquivo `.env` na **raiz** do repositório (credenciais do banco alinhadas ao [`docker-compose.yml`](docker-compose.yml)). A API carrega esse arquivo via `dotenv-cli` (ver `env:load` em [`apps/api/package.json`](apps/api/package.json)):
 
 ```env
+SERVER_PORT=3333
 DATABASE_URL="postgresql://docker:docker@localhost:5432/next-saas"
 JWT_SECRET="sua-chave-secreta-aqui"
+
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
+GITHUB_REDIRECT_URI="http://localhost:3000/api/auth/callback/github"
+
+# Para um app Next.js no monorepo (quando existir)
+NEXT_PUBLIC_API_URL="http://localhost:3333"
+NEXT_PUBLIC_GITHUB_CLIENT_ID=""
+NEXT_PUBLIC_JWT_SECRET="sua-chave-secreta-aqui"
 ```
 
 Gere o client Prisma e aplique as migrations:
@@ -121,7 +131,9 @@ flowchart TB
   root --> config[config/*]
   apps --> api["@saas/api"]
   packages --> auth["@saas/auth"]
+  packages --> envPkg["@saas/env"]
   api --> auth
+  api --> envPkg
   api --> db[(PostgreSQL)]
   config --> eslint["@saas/eslint-config"]
   config --> prettier["@saas/prettier"]
@@ -134,10 +146,12 @@ flowchart TB
 │   └── api/                 # @saas/api — API Fastify + Prisma
 │       ├── prisma/          # schema, migrations e seeds
 │       └── src/
-│           ├── http/        # servidor, middleware JWT, rotas (auth/) e Swagger UI
-│           └── lib/         # cliente Prisma compartilhado
+│           ├── http/        # servidor, middleware JWT, rotas (auth/, orgs/) e Swagger UI
+│           ├── lib/         # cliente Prisma compartilhado
+│           └── utils/       # helpers (slug, permissões CASL)
 ├── packages/
-│   └── auth/                # @saas/auth — RBAC com CASL
+│   ├── auth/                # @saas/auth — RBAC com CASL
+│   └── env/                 # @saas/env — variáveis de ambiente tipadas (Zod)
 ├── config/
 │   ├── eslint-config/       # @saas/eslint-config
 │   ├── prettier/            # @saas/prettier
@@ -159,14 +173,15 @@ API HTTP com [Fastify](https://fastify.dev/), validação e schemas OpenAPI via 
 | ------- | --------- |
 | [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`, Swagger em `/docs`, JWT, CORS) |
 | [`src/http/error-handler.ts`](apps/api/src/http/error-handler.ts) | Tratamento centralizado de erros (Zod, 400, 401, 500) |
-| [`src/http/middleware/auth.ts`](apps/api/src/http/middleware/auth.ts) | Plugin JWT — expõe `request.getCurrentUserId()` |
-| [`src/http/routes/`](apps/api/src/http/routes/) | Rotas HTTP agrupadas por domínio |
+| [`src/http/middleware/auth.ts`](apps/api/src/http/middleware/auth.ts) | Plugin JWT — expõe `getCurrentUserId()` e `getUserMembership(slug)` |
+| [`src/http/routes/`](apps/api/src/http/routes/) | Rotas HTTP agrupadas por domínio (`auth/`, `orgs/`) |
+| [`src/utils/get-user-permissions.ts`](apps/api/src/utils/get-user-permissions.ts) | Monta `AppAbility` do CASL a partir do usuário e do papel |
 | [`src/lib/prisma.ts`](apps/api/src/lib/prisma.ts) | Cliente Prisma com adapter `@prisma/adapter-pg` |
 | [`prisma/schema.prisma`](apps/api/prisma/schema.prisma) | Modelos do banco |
 | [`prisma/seeds.ts`](apps/api/prisma/seeds.ts) | Seed de desenvolvimento (organizações por papel) |
 | [`prisma.config.ts`](apps/api/prisma.config.ts) | Configuração do Prisma CLI (`DATABASE_URL`) |
 
-O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed. Rotas protegidas exigem o header `Authorization: Bearer <token>` (JWT com validade de 7 dias, emitido em `POST /sessions/password`). Com o servidor em execução, a especificação OpenAPI e o Swagger UI ficam disponíveis em `/docs`.
+O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed. Variáveis de ambiente são validadas pelo pacote `@saas/env` na inicialização. Rotas protegidas exigem o header `Authorization: Bearer <token>` (JWT com validade de 7 dias, emitido em `POST /sessions/password` ou `POST /sessions/github`). Rotas de organização usam `getUserMembership(slug)` para garantir que o usuário é membro; operações sensíveis (ex.: atualizar organização) checam permissões com `getUserPermissions` e o CASL. Com o servidor em execução, a especificação OpenAPI e o Swagger UI ficam disponíveis em `/docs`.
 
 #### Modelos (Prisma)
 
@@ -200,6 +215,7 @@ Cada organização inclui membros, projetos com `ownerId` variado e metadados ge
 | ------ | --------------------- | ------------ | --------- |
 | `POST` | `/users`              | —            | Criação de conta |
 | `POST` | `/sessions/password`  | —            | Login com e-mail e senha (retorna JWT) |
+| `POST` | `/sessions/github`    | —            | Login com código OAuth do GitHub (retorna JWT) |
 | `GET`  | `/profile`            | Bearer JWT   | Perfil do usuário autenticado |
 | `POST` | `/password/recover`   | —            | Solicita recuperação de senha |
 | `POST` | `/password/reset`     | —            | Redefine a senha com código de recuperação |
@@ -230,6 +246,19 @@ Todas as rotas estão sob a tag OpenAPI `auth`. Detalhes de request/response tam
 | ------ | ----- | ------ |
 | `201`  | `{ "token": "<jwt>" }` | Credenciais válidas |
 | `400`  | `{ "message": "Invalid credentials" }` ou `{ "message": "User does not have a password" }` | Falha na autenticação |
+
+**`POST /sessions/github`** — [`authenticate-with-github.ts`](apps/api/src/http/routes/auth/authenticate-with-github.ts)
+
+| Campo  | Regras |
+| ------ | ------ |
+| `code` | string (código retornado pelo GitHub OAuth) |
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `201`  | `{ "token": "<jwt>" }` | OAuth válido; cria usuário/conta GitHub se necessário |
+| `400`  | `{ "message": "..." }` | Falha no OAuth ou conta GitHub sem e-mail público |
+
+Requer `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` e `GITHUB_REDIRECT_URI` no `.env` da raiz.
 
 **`GET /profile`** — [`get-profile.ts`](apps/api/src/http/routes/auth/get-profile.ts)
 
@@ -292,6 +321,85 @@ curl -X POST http://localhost:3333/password/reset \
 
 Alternativa: abra [`http://localhost:3333/docs`](http://localhost:3333/docs) e execute as operações pela interface Swagger.
 
+#### Rotas HTTP (`organizations`)
+
+| Método | Rota | Autenticação | Descrição |
+| ------ | ---- | ------------ | --------- |
+| `POST` | `/organization` | Bearer JWT | Cria organização; usuário vira `ADMIN` e `ownerId` |
+| `GET` | `/organizations` | Bearer JWT | Lista organizações em que o usuário é membro (com papel) |
+| `GET` | `/organizations/:slug` | Bearer JWT | Detalhes da organização (requer membership) |
+| `PUT` | `/organizations/:slug` | Bearer JWT | Atualiza organização (exige permissão `update` no CASL) |
+| `GET` | `/organization/:slug/membership` | Bearer JWT | Membership do usuário na organização |
+
+Todas as rotas estão sob a tag OpenAPI `organizations`.
+
+**`POST /organization`** — [`create-organization.ts`](apps/api/src/http/routes/orgs/create-organization.ts)
+
+| Campo | Regras |
+| ----- | ------ |
+| `name` | string |
+| `domain` | string, opcional |
+| `shouldAttachUsersByDomain` | boolean, opcional |
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `201` | `{ "organizationId": "..." }` | Organização criada |
+| `400` | `{ "message": "..." }` | Domínio já em uso |
+
+**`GET /organizations`** — [`get-organizations.ts`](apps/api/src/http/routes/orgs/get-organizations.ts)
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `200` | `{ "organizations": [{ "id", "name", "slug", "avatarUrl", "role" }] }` | Lista de memberships |
+
+**`GET /organizations/:slug`** — [`get-organization.ts`](apps/api/src/http/routes/orgs/get-organization.ts)
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `200` | `{ "organization": { ... } }` | Usuário é membro da organização |
+| `401` | `{ "message": "..." }` | Token inválido ou não é membro |
+
+**`PUT /organizations/:slug`** — [`update-organization.ts`](apps/api/src/http/routes/orgs/update-organization.ts)
+
+| Campo | Regras |
+| ----- | ------ |
+| `name` | string |
+| `domain` | string ou `null` |
+| `shouldAttachUsersByDomain` | boolean |
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `204` | — | Atualizado com sucesso |
+| `400` | `{ "message": "..." }` | Domínio já em uso por outra org |
+| `401` | `{ "message": "..." }` | Sem permissão CASL ou não é membro |
+
+**`GET /organization/:slug/membership`** — [`get-membership.ts`](apps/api/src/http/routes/orgs/get-membership.ts)
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `200` | `{ "membership": { "id", "role", "organizationId" } }` | Membership encontrado |
+
+#### Fluxo de organizações (exemplo)
+
+```bash
+# Após obter o token (login ou seed)
+TOKEN="<jwt>"
+
+# Criar organização
+curl -X POST http://localhost:3333/organization \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Minha Empresa","domain":"minhaempresa.com"}'
+
+# Listar organizações do usuário
+curl http://localhost:3333/organizations \
+  -H "Authorization: Bearer $TOKEN"
+
+# Detalhes por slug (ex.: do seed: acme-admin)
+curl http://localhost:3333/organizations/acme-admin \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 ## Pacotes (`packages/`)
 
 ### `@saas/auth`
@@ -346,6 +454,16 @@ ability.can('delete', project);    // true (owner)
 
 Implementação de referência em [`packages/auth/src/index.ts`](packages/auth/src/index.ts).
 
+### `@saas/env`
+
+Validação tipada de variáveis de ambiente com [`@t3-oss/env-nextjs`](https://env.t3.gg/) e Zod em [`packages/env/`](packages/env/). Exporta o objeto `env` usado pela API e por apps frontend do monorepo.
+
+Variáveis de servidor: `SERVER_PORT`, `DATABASE_URL`, `JWT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`.
+
+Variáveis de cliente (Next.js): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GITHUB_CLIENT_ID`, `NEXT_PUBLIC_JWT_SECRET`.
+
+Compartilhada: `NODE_ENV` (`development` | `production` | `test`).
+
 ## Pacotes compartilhados (`config/`)
 
 ### `@saas/prettier`
@@ -393,20 +511,38 @@ O arquivo [`turbo.json`](turbo.json) define as tasks:
 
 ## Variáveis de ambiente
 
-Arquivos `.env` não são versionados (ver [`.gitignore`](.gitignore)).
+Arquivos `.env` não são versionados (ver [`.gitignore`](.gitignore)). Use um único `.env` na **raiz** do monorepo; a API e o Prisma CLI leem esse arquivo via `dotenv -e ../../.env` no workspace `@saas/api`.
 
-### `@saas/api`
+Definição e validação em [`packages/env/index.ts`](packages/env/index.ts).
 
-| Variável        | Obrigatória | Descrição |
-| --------------- | ----------- | --------- |
-| `DATABASE_URL`  | Sim         | URL PostgreSQL usada pelo Prisma (`prisma.config.ts`) |
-| `JWT_SECRET`    | Sim         | Chave secreta para assinar e validar tokens JWT (`@fastify/jwt`) |
+| Variável | Obrigatória | Descrição |
+| -------- | ----------- | --------- |
+| `SERVER_PORT` | Não (padrão `3333`) | Porta HTTP da API |
+| `DATABASE_URL` | Sim | URL PostgreSQL (Prisma) |
+| `JWT_SECRET` | Sim | Chave para assinar/validar JWT |
+| `GITHUB_CLIENT_ID` | Sim* | Client ID do app OAuth GitHub |
+| `GITHUB_CLIENT_SECRET` | Sim* | Client secret do app OAuth GitHub |
+| `GITHUB_REDIRECT_URI` | Sim* | URI de callback registrada no GitHub |
+| `NEXT_PUBLIC_API_URL` | Sim** | URL base da API (apps Next.js) |
+| `NEXT_PUBLIC_GITHUB_CLIENT_ID` | Sim** | Client ID exposto ao browser |
+| `NEXT_PUBLIC_JWT_SECRET` | Sim** | Mesmo segredo JWT no cliente (se aplicável) |
+| `NODE_ENV` | Não (padrão `development`) | Ambiente de execução |
 
-Exemplo para desenvolvimento local com o `docker-compose.yml` do repositório:
+\* Necessárias para `POST /sessions/github`.  
+\*\* Usadas quando houver app Next.js no monorepo; podem ser preenchidas com valores de desenvolvimento mesmo rodando só a API.
+
+Exemplo mínimo para desenvolvimento local (API + banco Docker):
 
 ```env
+SERVER_PORT=3333
 DATABASE_URL="postgresql://docker:docker@localhost:5432/next-saas"
 JWT_SECRET="dev-secret-change-in-production"
+GITHUB_CLIENT_ID="seu-client-id"
+GITHUB_CLIENT_SECRET="seu-client-secret"
+GITHUB_REDIRECT_URI="http://localhost:3000/api/auth/callback/github"
+NEXT_PUBLIC_API_URL="http://localhost:3333"
+NEXT_PUBLIC_GITHUB_CLIENT_ID="seu-client-id"
+NEXT_PUBLIC_JWT_SECRET="dev-secret-change-in-production"
 ```
 
 ## Licença
