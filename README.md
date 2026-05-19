@@ -1,6 +1,6 @@
 # next-saas-rbac
 
-Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote, expõe rotas HTTP com documentação OpenAPI em `/docs` e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
+Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote, expõe rotas de autenticação (cadastro, login JWT, perfil e recuperação de senha), documentação OpenAPI em `/docs` e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
 
 **Requisitos:** Node.js `>=18` · npm `11.11.0` · [Docker](https://www.docker.com/) (para o banco local)
 
@@ -37,10 +37,11 @@ O PostgreSQL sobe via Docker Compose na raiz do repositório:
 docker compose up -d
 ```
 
-Crie o arquivo `apps/api/.env` com a URL de conexão (credenciais alinhadas ao [`docker-compose.yml`](docker-compose.yml)):
+Crie o arquivo `apps/api/.env` (credenciais do banco alinhadas ao [`docker-compose.yml`](docker-compose.yml)):
 
 ```env
 DATABASE_URL="postgresql://docker:docker@localhost:5432/next-saas"
+JWT_SECRET="sua-chave-secreta-aqui"
 ```
 
 Gere o client Prisma e aplique as migrations:
@@ -133,7 +134,7 @@ flowchart TB
 │   └── api/                 # @saas/api — API Fastify + Prisma
 │       ├── prisma/          # schema, migrations e seeds
 │       └── src/
-│           ├── http/        # servidor, rotas (ex.: auth/) e Swagger UI
+│           ├── http/        # servidor, middleware JWT, rotas (auth/) e Swagger UI
 │           └── lib/         # cliente Prisma compartilhado
 ├── packages/
 │   └── auth/                # @saas/auth — RBAC com CASL
@@ -152,18 +153,20 @@ Workspaces npm definidos na raiz: `apps/*`, `packages/*`, `config/*`.
 
 ### `@saas/api`
 
-API HTTP com [Fastify](https://fastify.dev/), validação e schemas OpenAPI via [fastify-type-provider-zod](https://github.com/turkerdev/fastify-type-provider-zod), documentação com [@fastify/swagger](https://github.com/fastify/fastify-swagger) + [@fastify/swagger-ui](https://github.com/fastify/fastify-swagger-ui), [CORS](https://github.com/fastify/fastify-cors) habilitado e persistência com Prisma 7 em [`apps/api/`](apps/api/).
+API HTTP com [Fastify](https://fastify.dev/), validação e schemas OpenAPI via [fastify-type-provider-zod](https://github.com/turkerdev/fastify-type-provider-zod), documentação com [@fastify/swagger](https://github.com/fastify/fastify-swagger) + [@fastify/swagger-ui](https://github.com/fastify/fastify-swagger-ui), autenticação JWT com [@fastify/jwt](https://github.com/fastify/fastify-jwt), [CORS](https://github.com/fastify/fastify-cors) habilitado e persistência com Prisma 7 em [`apps/api/`](apps/api/).
 
 | Caminho | Descrição |
 | ------- | --------- |
-| [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`, Swagger em `/docs`, CORS) |
+| [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`, Swagger em `/docs`, JWT, CORS) |
+| [`src/http/error-handler.ts`](apps/api/src/http/error-handler.ts) | Tratamento centralizado de erros (Zod, 400, 401, 500) |
+| [`src/http/middleware/auth.ts`](apps/api/src/http/middleware/auth.ts) | Plugin JWT — expõe `request.getCurrentUserId()` |
 | [`src/http/routes/`](apps/api/src/http/routes/) | Rotas HTTP agrupadas por domínio |
 | [`src/lib/prisma.ts`](apps/api/src/lib/prisma.ts) | Cliente Prisma com adapter `@prisma/adapter-pg` |
 | [`prisma/schema.prisma`](apps/api/prisma/schema.prisma) | Modelos do banco |
 | [`prisma/seeds.ts`](apps/api/prisma/seeds.ts) | Seed de desenvolvimento (organizações por papel) |
 | [`prisma.config.ts`](apps/api/prisma.config.ts) | Configuração do Prisma CLI (`DATABASE_URL`) |
 
-O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed. Com o servidor em execução, a especificação OpenAPI e o Swagger UI ficam disponíveis em `/docs`.
+O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed. Rotas protegidas exigem o header `Authorization: Bearer <token>` (JWT com validade de 7 dias, emitido em `POST /sessions/password`). Com o servidor em execução, a especificação OpenAPI e o Swagger UI ficam disponíveis em `/docs`.
 
 #### Modelos (Prisma)
 
@@ -191,38 +194,103 @@ O comando `npm run db:seed` executa [`prisma/seeds.ts`](apps/api/prisma/seeds.ts
 
 Cada organização inclui membros, projetos com `ownerId` variado e metadados gerados com Faker.
 
-#### Rotas HTTP (inicial)
+#### Rotas HTTP (`auth`)
 
-| Método | Rota     | Tag OpenAPI | Descrição |
-| ------ | -------- | ----------- | --------- |
-| `POST` | `/users` | `auth`      | Criação de conta (nome, e-mail, senha com bcrypt) |
+| Método | Rota                  | Autenticação | Descrição |
+| ------ | --------------------- | ------------ | --------- |
+| `POST` | `/users`              | —            | Criação de conta |
+| `POST` | `/sessions/password`  | —            | Login com e-mail e senha (retorna JWT) |
+| `GET`  | `/profile`            | Bearer JWT   | Perfil do usuário autenticado |
+| `POST` | `/password/recover`   | —            | Solicita recuperação de senha |
+| `POST` | `/password/reset`     | —            | Redefine a senha com código de recuperação |
 
-**`POST /users`** — corpo validado com Zod:
+Todas as rotas estão sob a tag OpenAPI `auth`. Detalhes de request/response também em [`http://localhost:3333/docs`](http://localhost:3333/docs).
 
-| Campo      | Regras                          |
-| ---------- | ------------------------------- |
-| `name`     | string, mínimo 1 caractere      |
-| `email`    | e-mail válido                   |
-| `password` | string, mínimo 6 caracteres     |
+**`POST /users`** — [`create-account.ts`](apps/api/src/http/routes/auth/create-account.ts)
 
-Respostas:
+| Campo      | Regras                      |
+| ---------- | --------------------------- |
+| `name`     | string, mínimo 1 caractere  |
+| `email`    | e-mail válido               |
+| `password` | string, mínimo 6 caracteres |
 
-| Status | Corpo (exemplo)                              | Quando |
-| ------ | -------------------------------------------- | ------ |
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
 | `201`  | `{ "message": "User created successfully" }` | Usuário criado |
 | `400`  | `{ "message": "User with same email already exists" }` | E-mail já cadastrado |
 
-Implementação em [`src/http/routes/auth/create-account.ts`](apps/api/src/http/routes/auth/create-account.ts).
+**`POST /sessions/password`** — [`authenticate-with-password.ts`](apps/api/src/http/routes/auth/authenticate-with-password.ts)
 
-Exemplo com `curl`:
+| Campo      | Regras                      |
+| ---------- | --------------------------- |
+| `email`    | e-mail válido               |
+| `password` | string, mínimo 6 caracteres |
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `201`  | `{ "token": "<jwt>" }` | Credenciais válidas |
+| `400`  | `{ "message": "Invalid credentials" }` ou `{ "message": "User does not have a password" }` | Falha na autenticação |
+
+**`GET /profile`** — [`get-profile.ts`](apps/api/src/http/routes/auth/get-profile.ts)
+
+| Header           | Valor                    |
+| ---------------- | ------------------------ |
+| `Authorization`  | `Bearer <token>`         |
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `200`  | `{ "user": { "id", "name", "email", "avatarUrl" } }` | Perfil encontrado |
+| `401`  | `{ "message": "Unauthorized" }` | Token ausente ou inválido |
+
+**`POST /password/recover`** — [`resquest-password-recover.ts`](apps/api/src/http/routes/auth/resquest-password-recover.ts)
+
+| Campo   | Regras      |
+| ------- | ----------- |
+| `email` | e-mail válido |
+
+Sempre responde `201` (mesmo se o e-mail não existir, para não revelar cadastros). Quando o usuário existe, um token `PASSWORD_RECOVER` é criado e o **código** é impresso no console do servidor (`Recover password token: …`) — em produção, substitua por envio de e-mail.
+
+**`POST /password/reset`** — [`reset-password.ts`](apps/api/src/http/routes/auth/reset-password.ts)
+
+| Campo      | Regras                      |
+| ---------- | --------------------------- |
+| `code`     | string (id do token)        |
+| `password` | string, mínimo 6 caracteres |
+
+| Status | Corpo | Quando |
+| ------ | ----- | ------ |
+| `204`  | —     | Senha atualizada e token consumido |
+| `401`  | `{ "message": "Unauthorized" }` | Código inválido ou tipo de token incorreto |
+
+#### Fluxo de autenticação (exemplo)
 
 ```bash
+# 1. Criar conta
 curl -X POST http://localhost:3333/users \
   -H "Content-Type: application/json" \
   -d '{"name":"Jane","email":"jane@example.com","password":"secret123"}'
+
+# 2. Login (ou use o seed: john.doe@example.com / 123456)
+curl -X POST http://localhost:3333/sessions/password \
+  -H "Content-Type: application/json" \
+  -d '{"email":"jane@example.com","password":"secret123"}'
+
+# 3. Perfil autenticado
+curl http://localhost:3333/profile \
+  -H "Authorization: Bearer <token>"
+
+# 4. Recuperar senha (veja o código no log da API)
+curl -X POST http://localhost:3333/password/recover \
+  -H "Content-Type: application/json" \
+  -d '{"email":"jane@example.com"}'
+
+# 5. Redefinir senha
+curl -X POST http://localhost:3333/password/reset \
+  -H "Content-Type: application/json" \
+  -d '{"code":"<codigo-do-log>","password":"novaSenha123"}'
 ```
 
-Alternativa: abra [`http://localhost:3333/docs`](http://localhost:3333/docs) e execute a operação pela interface Swagger.
+Alternativa: abra [`http://localhost:3333/docs`](http://localhost:3333/docs) e execute as operações pela interface Swagger.
 
 ## Pacotes (`packages/`)
 
@@ -332,11 +400,13 @@ Arquivos `.env` não são versionados (ver [`.gitignore`](.gitignore)).
 | Variável        | Obrigatória | Descrição |
 | --------------- | ----------- | --------- |
 | `DATABASE_URL`  | Sim         | URL PostgreSQL usada pelo Prisma (`prisma.config.ts`) |
+| `JWT_SECRET`    | Sim         | Chave secreta para assinar e validar tokens JWT (`@fastify/jwt`) |
 
 Exemplo para desenvolvimento local com o `docker-compose.yml` do repositório:
 
 ```env
 DATABASE_URL="postgresql://docker:docker@localhost:5432/next-saas"
+JWT_SECRET="dev-secret-change-in-production"
 ```
 
 ## Licença
