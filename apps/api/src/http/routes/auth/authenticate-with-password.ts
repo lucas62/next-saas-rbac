@@ -24,9 +24,6 @@ export function authenticateWithPassword(app: FastifyInstance) {
           400: z.object({
             message: z.string(),
           }),
-          401: z.object({
-            message: z.string(),
-          }),
         },
       },
     },
