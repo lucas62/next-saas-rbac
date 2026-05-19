@@ -2,6 +2,7 @@ import fastifyCors from '@fastify/cors'
 import fastifyJwt from '@fastify/jwt'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUI from '@fastify/swagger-ui'
+import { env } from '@saas/env'
 import fastify from 'fastify'
 import {
   jsonSchemaTransform,
@@ -17,6 +18,7 @@ import { createAccount } from './routes/auth/create-account'
 import { getProfile } from './routes/auth/get-profile'
 import { resetPassword } from './routes/auth/reset-password'
 import { requestPasswordRecover } from './routes/auth/resquest-password-recover'
+import { createOrganization } from './routes/orgs/create-organization'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -31,6 +33,16 @@ app.register(fastifySwagger, {
       description: 'API documentation for the Next SaaS RBAC application',
       version: '1.0.0',
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'JWT token for authentication',
+        },
+      },
+    },
   },
   transform: jsonSchemaTransform,
 })
@@ -40,7 +52,7 @@ app.register(fastifySwaggerUI, {
 })
 
 app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET as string,
+  secret: env.JWT_SECRET,
 })
 
 app.register(fastifyCors)
@@ -52,6 +64,7 @@ app.register(getProfile)
 app.register(requestPasswordRecover)
 app.register(resetPassword)
 
-app.listen({ port: 3333, host: '0.0.0.0' }, () => {
-  console.log('Server is running on port 3333')
+app.register(createOrganization)
+app.listen({ port: env.SERVER_PORT, host: '0.0.0.0' }, () => {
+  console.log(`Server is running on port ${env.SERVER_PORT}`)
 })

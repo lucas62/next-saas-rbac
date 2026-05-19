@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/http/server.ts",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "db:seed": "prisma generate && prisma db seed"
+    "dev": "npm run env:load tsx watch src/http/server.ts",
+    "env:load": "dotenv -e ../../.env --",
+    "db:generate": "npm run env:load prisma generate",
+    "db:migrate": "npm run env:load prisma migrate dev",
+    "db:studio": "npm run env:load prisma studio",
+    "db:seed": "npm run env:load prisma generate && prisma db seed"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
@@ -17,6 +18,7 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@saas/auth": "*",
+    "@saas/env": "*",
     "bcryptjs": "^3.0.3",
     "dotenv": "^16.5.0",
     "fastify": "^5.8.5",
@@ -33,6 +35,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^25.8.0",
     "@types/pg": "^8.20.0",
+    "dotenv-cli": "^11.0.0",
     "prisma": "^7.8.0",
     "tsx": "^4.22.0"
   },
