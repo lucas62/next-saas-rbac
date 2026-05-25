@@ -6,11 +6,11 @@ Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS c
 
 ## Pré-requisitos
 
-| Item       | Versão                           |
-| ---------- | -------------------------------- |
-| Node.js    | `>=18` (ver `engines` na raiz)   |
-| npm        | `11.11.0` (ver `packageManager`) |
-| Docker     | Para subir o PostgreSQL local    |
+| Item    | Versão                           |
+| ------- | -------------------------------- |
+| Node.js | `>=18` (ver `engines` na raiz)   |
+| npm     | `11.11.0` (ver `packageManager`) |
+| Docker  | Para subir o PostgreSQL local    |
 
 Recomenda-se habilitar o [Corepack](https://nodejs.org/api/corepack.html) para usar a versão de npm definida no repositório:
 
@@ -95,16 +95,16 @@ Documentação interativa OpenAPI (Swagger UI): [`http://localhost:3333/docs`](h
 
 Comandos disponíveis na raiz ([`package.json`](package.json)):
 
-| Script          | Comando                 | Observação                                                        |
-| --------------- | ----------------------- | ----------------------------------------------------------------- |
-| `dev`           | `npm run dev`           | Executa `turbo run dev` nos workspaces que definirem a task `dev` |
-| `build`         | `npm run build`         | Executa `turbo run build` nos workspaces que definirem `build`    |
-| `lint`          | `npm run lint`          | Executa `turbo run lint` nos workspaces que definirem `lint`      |
-| `check-types`   | `npm run check-types`   | Executa `turbo run check-types` nos workspaces com essa task      |
-| `db:generate`   | `npm run db:generate`   | Gera o Prisma Client em `@saas/api`                               |
-| `db:migrate`    | `npm run db:migrate`    | Executa `prisma migrate dev` em `@saas/api`                       |
-| `db:seed`       | `npm run db:seed`       | Gera o client e executa o seed em [`apps/api/prisma/seeds.ts`](apps/api/prisma/seeds.ts) |
-| `db:studio`     | `npm run db:studio`     | Abre o Prisma Studio em `@saas/api`                               |
+| Script        | Comando               | Observação                                                                               |
+| ------------- | --------------------- | ---------------------------------------------------------------------------------------- |
+| `dev`         | `npm run dev`         | Executa `turbo run dev` nos workspaces que definirem a task `dev`                        |
+| `build`       | `npm run build`       | Executa `turbo run build` nos workspaces que definirem `build`                           |
+| `lint`        | `npm run lint`        | Executa `turbo run lint` nos workspaces que definirem `lint`                             |
+| `check-types` | `npm run check-types` | Executa `turbo run check-types` nos workspaces com essa task                             |
+| `db:generate` | `npm run db:generate` | Gera o Prisma Client em `@saas/api`                                                      |
+| `db:migrate`  | `npm run db:migrate`  | Executa `prisma migrate dev` em `@saas/api`                                              |
+| `db:seed`     | `npm run db:seed`     | Gera o client e executa o seed em [`apps/api/prisma/seeds.ts`](apps/api/prisma/seeds.ts) |
+| `db:studio`   | `npm run db:studio`   | Abre o Prisma Studio em `@saas/api`                                                      |
 
 Para filtrar uma task em um pacote específico:
 
@@ -169,31 +169,31 @@ Workspaces npm definidos na raiz: `apps/*`, `packages/*`, `config/*`.
 
 API HTTP com [Fastify](https://fastify.dev/), validação e schemas OpenAPI via [fastify-type-provider-zod](https://github.com/turkerdev/fastify-type-provider-zod), documentação com [@fastify/swagger](https://github.com/fastify/fastify-swagger) + [@fastify/swagger-ui](https://github.com/fastify/fastify-swagger-ui), autenticação JWT com [@fastify/jwt](https://github.com/fastify/fastify-jwt), [CORS](https://github.com/fastify/fastify-cors) habilitado e persistência com Prisma 7 em [`apps/api/`](apps/api/).
 
-| Caminho | Descrição |
-| ------- | --------- |
-| [`src/http/server.ts`](apps/api/src/http/server.ts) | Entrada do servidor (porta `3333`, Swagger em `/docs`, JWT, CORS) |
-| [`src/http/error-handler.ts`](apps/api/src/http/error-handler.ts) | Tratamento centralizado de erros (Zod, 400, 401, 500) |
-| [`src/http/middleware/auth.ts`](apps/api/src/http/middleware/auth.ts) | Plugin JWT — expõe `getCurrentUserId()` e `getUserMembership(slug)` |
-| [`src/http/routes/`](apps/api/src/http/routes/) | Rotas HTTP agrupadas por domínio (`auth/`, `orgs/`) |
-| [`src/utils/get-user-permissions.ts`](apps/api/src/utils/get-user-permissions.ts) | Monta `AppAbility` do CASL a partir do usuário e do papel |
-| [`src/lib/prisma.ts`](apps/api/src/lib/prisma.ts) | Cliente Prisma com adapter `@prisma/adapter-pg` |
-| [`prisma/schema.prisma`](apps/api/prisma/schema.prisma) | Modelos do banco |
-| [`prisma/seeds.ts`](apps/api/prisma/seeds.ts) | Seed de desenvolvimento (organizações por papel) |
-| [`prisma.config.ts`](apps/api/prisma.config.ts) | Configuração do Prisma CLI (`DATABASE_URL`) |
+| Caminho                                                                           | Descrição                                                           |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [`src/http/server.ts`](apps/api/src/http/server.ts)                               | Entrada do servidor (porta `3333`, Swagger em `/docs`, JWT, CORS)   |
+| [`src/http/error-handler.ts`](apps/api/src/http/error-handler.ts)                 | Tratamento centralizado de erros (Zod, 400, 401, 500)               |
+| [`src/http/middleware/auth.ts`](apps/api/src/http/middleware/auth.ts)             | Plugin JWT — expõe `getCurrentUserId()` e `getUserMembership(slug)` |
+| [`src/http/routes/`](apps/api/src/http/routes/)                                   | Rotas HTTP agrupadas por domínio (`auth/`, `orgs/`)                 |
+| [`src/utils/get-user-permissions.ts`](apps/api/src/utils/get-user-permissions.ts) | Monta `AppAbility` do CASL a partir do usuário e do papel           |
+| [`src/lib/prisma.ts`](apps/api/src/lib/prisma.ts)                                 | Cliente Prisma com adapter `@prisma/adapter-pg`                     |
+| [`prisma/schema.prisma`](apps/api/prisma/schema.prisma)                           | Modelos do banco                                                    |
+| [`prisma/seeds.ts`](apps/api/prisma/seeds.ts)                                     | Seed de desenvolvimento (organizações por papel)                    |
+| [`prisma.config.ts`](apps/api/prisma.config.ts)                                   | Configuração do Prisma CLI (`DATABASE_URL`)                         |
 
 O runtime da API usa Prisma 7 com driver adapter PostgreSQL (`pg`). O client é exportado de `src/lib/prisma.ts` e reutilizado nas rotas e no seed. Variáveis de ambiente são validadas pelo pacote `@saas/env` na inicialização. Rotas protegidas exigem o header `Authorization: Bearer <token>` (JWT com validade de 7 dias, emitido em `POST /sessions/password` ou `POST /sessions/github`). Rotas de organização usam `getUserMembership(slug)` para garantir que o usuário é membro; operações sensíveis (ex.: atualizar organização) checam permissões com `getUserPermissions` e o CASL. Com o servidor em execução, a especificação OpenAPI e o Swagger UI ficam disponíveis em `/docs`.
 
 #### Modelos (Prisma)
 
-| Modelo           | Descrição (resumo)                                      |
-| ---------------- | ------------------------------------------------------- |
-| `User`           | Usuário da plataforma                                   |
-| `Token`          | Tokens (ex.: recuperação de senha)                      |
-| `Account`        | Contas OAuth (`GITHUB`)                                 |
-| `Organization`   | Organização multi-tenant com `ownerId`                  |
-| `Member`         | Membro de organização com `Role`                        |
-| `Invite`         | Convite pendente para organização                       |
-| `Project`        | Projeto vinculado a organização com `ownerId`           |
+| Modelo         | Descrição (resumo)                            |
+| -------------- | --------------------------------------------- |
+| `User`         | Usuário da plataforma                         |
+| `Token`        | Tokens (ex.: recuperação de senha)            |
+| `Account`      | Contas OAuth (`GITHUB`)                       |
+| `Organization` | Organização multi-tenant com `ownerId`        |
+| `Member`       | Membro de organização com `Role`              |
+| `Invite`       | Convite pendente para organização             |
+| `Project`      | Projeto vinculado a organização com `ownerId` |
 
 Papéis no banco (`Role`): `ADMIN`, `MEMBER`, `BILLING` — alinhados ao pacote `@saas/auth`.
 
@@ -211,14 +211,14 @@ Cada organização inclui membros, projetos com `ownerId` variado e metadados ge
 
 #### Rotas HTTP (`auth`)
 
-| Método | Rota                  | Autenticação | Descrição |
-| ------ | --------------------- | ------------ | --------- |
-| `POST` | `/users`              | —            | Criação de conta |
-| `POST` | `/sessions/password`  | —            | Login com e-mail e senha (retorna JWT) |
-| `POST` | `/sessions/github`    | —            | Login com código OAuth do GitHub (retorna JWT) |
-| `GET`  | `/profile`            | Bearer JWT   | Perfil do usuário autenticado |
-| `POST` | `/password/recover`   | —            | Solicita recuperação de senha |
-| `POST` | `/password/reset`     | —            | Redefine a senha com código de recuperação |
+| Método | Rota                 | Autenticação | Descrição                                      |
+| ------ | -------------------- | ------------ | ---------------------------------------------- |
+| `POST` | `/users`             | —            | Criação de conta                               |
+| `POST` | `/sessions/password` | —            | Login com e-mail e senha (retorna JWT)         |
+| `POST` | `/sessions/github`   | —            | Login com código OAuth do GitHub (retorna JWT) |
+| `GET`  | `/profile`           | Bearer JWT   | Perfil do usuário autenticado                  |
+| `POST` | `/password/recover`  | —            | Solicita recuperação de senha                  |
+| `POST` | `/password/reset`    | —            | Redefine a senha com código de recuperação     |
 
 Todas as rotas estão sob a tag OpenAPI `auth`. Detalhes de request/response também em [`http://localhost:3333/docs`](http://localhost:3333/docs).
 
@@ -230,9 +230,9 @@ Todas as rotas estão sob a tag OpenAPI `auth`. Detalhes de request/response tam
 | `email`    | e-mail válido               |
 | `password` | string, mínimo 6 caracteres |
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `201`  | `{ "message": "User created successfully" }` | Usuário criado |
+| Status | Corpo                                                  | Quando               |
+| ------ | ------------------------------------------------------ | -------------------- |
+| `201`  | `{ "message": "User created successfully" }`           | Usuário criado       |
 | `400`  | `{ "message": "User with same email already exists" }` | E-mail já cadastrado |
 
 **`POST /sessions/password`** — [`authenticate-with-password.ts`](apps/api/src/http/routes/auth/authenticate-with-password.ts)
@@ -242,39 +242,39 @@ Todas as rotas estão sob a tag OpenAPI `auth`. Detalhes de request/response tam
 | `email`    | e-mail válido               |
 | `password` | string, mínimo 6 caracteres |
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `201`  | `{ "token": "<jwt>" }` | Credenciais válidas |
+| Status | Corpo                                                                                      | Quando                |
+| ------ | ------------------------------------------------------------------------------------------ | --------------------- |
+| `201`  | `{ "token": "<jwt>" }`                                                                     | Credenciais válidas   |
 | `400`  | `{ "message": "Invalid credentials" }` ou `{ "message": "User does not have a password" }` | Falha na autenticação |
 
 **`POST /sessions/github`** — [`authenticate-with-github.ts`](apps/api/src/http/routes/auth/authenticate-with-github.ts)
 
-| Campo  | Regras |
-| ------ | ------ |
+| Campo  | Regras                                      |
+| ------ | ------------------------------------------- |
 | `code` | string (código retornado pelo GitHub OAuth) |
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
+| Status | Corpo                  | Quando                                                |
+| ------ | ---------------------- | ----------------------------------------------------- |
 | `201`  | `{ "token": "<jwt>" }` | OAuth válido; cria usuário/conta GitHub se necessário |
-| `400`  | `{ "message": "..." }` | Falha no OAuth ou conta GitHub sem e-mail público |
+| `400`  | `{ "message": "..." }` | Falha no OAuth ou conta GitHub sem e-mail público     |
 
 Requer `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` e `GITHUB_REDIRECT_URI` no `.env` da raiz.
 
 **`GET /profile`** — [`get-profile.ts`](apps/api/src/http/routes/auth/get-profile.ts)
 
-| Header           | Valor                    |
-| ---------------- | ------------------------ |
-| `Authorization`  | `Bearer <token>`         |
+| Header          | Valor            |
+| --------------- | ---------------- |
+| `Authorization` | `Bearer <token>` |
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `200`  | `{ "user": { "id", "name", "email", "avatarUrl" } }` | Perfil encontrado |
-| `401`  | `{ "message": "Unauthorized" }` | Token ausente ou inválido |
+| Status | Corpo                                                | Quando                    |
+| ------ | ---------------------------------------------------- | ------------------------- |
+| `200`  | `{ "user": { "id", "name", "email", "avatarUrl" } }` | Perfil encontrado         |
+| `401`  | `{ "message": "Unauthorized" }`                      | Token ausente ou inválido |
 
 **`POST /password/recover`** — [`resquest-password-recover.ts`](apps/api/src/http/routes/auth/resquest-password-recover.ts)
 
-| Campo   | Regras      |
-| ------- | ----------- |
+| Campo   | Regras        |
+| ------- | ------------- |
 | `email` | e-mail válido |
 
 Sempre responde `201` (mesmo se o e-mail não existir, para não revelar cadastros). Quando o usuário existe, um token `PASSWORD_RECOVER` é criado e o **código** é impresso no console do servidor (`Recover password token: …`) — em produção, substitua por envio de e-mail.
@@ -286,9 +286,9 @@ Sempre responde `201` (mesmo se o e-mail não existir, para não revelar cadastr
 | `code`     | string (id do token)        |
 | `password` | string, mínimo 6 caracteres |
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `204`  | —     | Senha atualizada e token consumido |
+| Status | Corpo                           | Quando                                     |
+| ------ | ------------------------------- | ------------------------------------------ |
+| `204`  | —                               | Senha atualizada e token consumido         |
 | `401`  | `{ "message": "Unauthorized" }` | Código inválido ou tipo de token incorreto |
 
 #### Fluxo de autenticação (exemplo)
@@ -323,61 +323,82 @@ Alternativa: abra [`http://localhost:3333/docs`](http://localhost:3333/docs) e e
 
 #### Rotas HTTP (`organizations`)
 
-| Método | Rota | Autenticação | Descrição |
-| ------ | ---- | ------------ | --------- |
-| `POST` | `/organization` | Bearer JWT | Cria organização; usuário vira `ADMIN` e `ownerId` |
-| `GET` | `/organizations` | Bearer JWT | Lista organizações em que o usuário é membro (com papel) |
-| `GET` | `/organizations/:slug` | Bearer JWT | Detalhes da organização (requer membership) |
-| `PUT` | `/organizations/:slug` | Bearer JWT | Atualiza organização (exige permissão `update` no CASL) |
-| `GET` | `/organization/:slug/membership` | Bearer JWT | Membership do usuário na organização |
+| Método   | Rota                             | Autenticação | Descrição                                                                             |
+| -------- | -------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
+| `POST`   | `/organization`                  | Bearer JWT   | Cria organização; usuário vira `ADMIN` e `ownerId`                                    |
+| `GET`    | `/organizations`                 | Bearer JWT   | Lista organizações em que o usuário é membro (com papel)                              |
+| `GET`    | `/organizations/:slug`           | Bearer JWT   | Detalhes da organização (requer membership)                                           |
+| `PUT`    | `/organizations/:slug`           | Bearer JWT   | Atualiza organização (exige permissão `update` no CASL)                               |
+| `DELETE` | `/organizations/:slug`           | Bearer JWT   | Encerra (deleta) a organização (exige permissão `delete` no CASL)                     |
+| `PATCH`  | `/organizations/:slug/owner`     | Bearer JWT   | Transfere a propriedade da organização (exige permissão `transfer_ownership` no CASL) |
+| `GET`    | `/organization/:slug/membership` | Bearer JWT   | Membership do usuário na organização                                                  |
 
 Todas as rotas estão sob a tag OpenAPI `organizations`.
 
 **`POST /organization`** — [`create-organization.ts`](apps/api/src/http/routes/orgs/create-organization.ts)
 
-| Campo | Regras |
-| ----- | ------ |
-| `name` | string |
-| `domain` | string, opcional |
+| Campo                       | Regras            |
+| --------------------------- | ----------------- |
+| `name`                      | string            |
+| `domain`                    | string, opcional  |
 | `shouldAttachUsersByDomain` | boolean, opcional |
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `201` | `{ "organizationId": "..." }` | Organização criada |
-| `400` | `{ "message": "..." }` | Domínio já em uso |
+| Status | Corpo                         | Quando             |
+| ------ | ----------------------------- | ------------------ |
+| `201`  | `{ "organizationId": "..." }` | Organização criada |
+| `400`  | `{ "message": "..." }`        | Domínio já em uso  |
 
 **`GET /organizations`** — [`get-organizations.ts`](apps/api/src/http/routes/orgs/get-organizations.ts)
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `200` | `{ "organizations": [{ "id", "name", "slug", "avatarUrl", "role" }] }` | Lista de memberships |
+| Status | Corpo                                                                  | Quando               |
+| ------ | ---------------------------------------------------------------------- | -------------------- |
+| `200`  | `{ "organizations": [{ "id", "name", "slug", "avatarUrl", "role" }] }` | Lista de memberships |
 
 **`GET /organizations/:slug`** — [`get-organization.ts`](apps/api/src/http/routes/orgs/get-organization.ts)
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `200` | `{ "organization": { ... } }` | Usuário é membro da organização |
-| `401` | `{ "message": "..." }` | Token inválido ou não é membro |
+| Status | Corpo                         | Quando                          |
+| ------ | ----------------------------- | ------------------------------- |
+| `200`  | `{ "organization": { ... } }` | Usuário é membro da organização |
+| `401`  | `{ "message": "..." }`        | Token inválido ou não é membro  |
 
 **`PUT /organizations/:slug`** — [`update-organization.ts`](apps/api/src/http/routes/orgs/update-organization.ts)
 
-| Campo | Regras |
-| ----- | ------ |
-| `name` | string |
-| `domain` | string ou `null` |
-| `shouldAttachUsersByDomain` | boolean |
+| Campo                       | Regras           |
+| --------------------------- | ---------------- |
+| `name`                      | string           |
+| `domain`                    | string ou `null` |
+| `shouldAttachUsersByDomain` | boolean          |
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `204` | — | Atualizado com sucesso |
-| `400` | `{ "message": "..." }` | Domínio já em uso por outra org |
-| `401` | `{ "message": "..." }` | Sem permissão CASL ou não é membro |
+| Status | Corpo                  | Quando                             |
+| ------ | ---------------------- | ---------------------------------- |
+| `204`  | —                      | Atualizado com sucesso             |
+| `400`  | `{ "message": "..." }` | Domínio já em uso por outra org    |
+| `401`  | `{ "message": "..." }` | Sem permissão CASL ou não é membro |
 
 **`GET /organization/:slug/membership`** — [`get-membership.ts`](apps/api/src/http/routes/orgs/get-membership.ts)
 
-| Status | Corpo | Quando |
-| ------ | ----- | ------ |
-| `200` | `{ "membership": { "id", "role", "organizationId" } }` | Membership encontrado |
+| Status | Corpo                                                  | Quando                |
+| ------ | ------------------------------------------------------ | --------------------- |
+| `200`  | `{ "membership": { "id", "role", "organizationId" } }` | Membership encontrado |
+
+**`DELETE /organizations/:slug`** — [`shutdown-organization.ts`](apps/api/src/http/routes/orgs/shutdown-organization.ts)
+
+| Status | Corpo                  | Quando                             |
+| ------ | ---------------------- | ---------------------------------- |
+| `204`  | —                      | Organização encerrada com sucesso  |
+| `401`  | `{ "message": "..." }` | Sem permissão CASL ou não é membro |
+
+**`PATCH /organizations/:slug/owner`** — [`transfer-organization.ts`](apps/api/src/http/routes/orgs/transfer-organization.ts)
+
+| Campo              | Regras                     |
+| ------------------ | -------------------------- |
+| `transferToUserId` | string (UUID do novo dono) |
+
+| Status | Corpo                                                               | Quando                                |
+| ------ | ------------------------------------------------------------------- | ------------------------------------- |
+| `204`  | —                                                                   | Propriedade transferida com sucesso   |
+| `400`  | `{ "message": "Target user is not a member of this organization" }` | Novo dono não é membro da organização |
+| `401`  | `{ "message": "..." }`                                              | Sem permissão CASL ou não é membro    |
 
 #### Fluxo de organizações (exemplo)
 
@@ -400,6 +421,140 @@ curl http://localhost:3333/organizations/acme-admin \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+#### Rotas HTTP (`projects`)
+
+| Método   | Rota                                            | Autenticação | Descrição                                                                               |
+| -------- | ----------------------------------------------- | ------------ | --------------------------------------------------------------------------------------- |
+| `POST`   | `/organizations/:slug/projects`                 | Bearer JWT   | Cria um projeto na organização (exige permissão `create` em `Project` no CASL)          |
+| `GET`    | `/organizations/:slug/projects`                 | Bearer JWT   | Lista todos os projetos da organização (exige permissão `get` em `Project` no CASL)     |
+| `GET`    | `/organizations/:orgSlug/projects/:projectSlug` | Bearer JWT   | Detalhes de um projeto específico por slug (exige permissão `get` em `Project` no CASL) |
+| `PUT`    | `/organizations/:slug/projects/:projectId`      | Bearer JWT   | Atualiza um projeto específico (exige permissão `update` no CASL para o projeto)        |
+| `DELETE` | `/organizations/:slug/projects/:projectId`      | Bearer JWT   | Remove um projeto específico (exige permissão `delete` no CASL para o projeto)          |
+
+Todas as rotas estão sob a tag OpenAPI `projects`.
+
+**`POST /organizations/:slug/projects`** — [`create-project.ts`](apps/api/src/http/routes/projects/create-project.ts)
+
+| Campo         | Regras |
+| ------------- | ------ |
+| `name`        | string |
+| `description` | string |
+
+| Status | Corpo                    | Quando                             |
+| ------ | ------------------------ | ---------------------------------- |
+| `201`  | `{ "projectId": "..." }` | Projeto criado com sucesso         |
+| `401`  | `{ "message": "..." }`   | Sem permissão CASL ou não é membro |
+
+**`GET /organizations/:slug/projects`** — [`get-projects.ts`](apps/api/src/http/routes/projects/get-projects.ts)
+
+| Status | Corpo                                                                                                                                                                   | Quando                                     |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `200`  | `{ "projects": [{ "id", "name", "slug", "ownerId", "organizationId", "description", "avatarUrl", "createdAt", "updatedAt", "owner": { "id", "name", "avatarUrl" } }] }` | Lista de projetos da organização retornada |
+| `401`  | `{ "message": "..." }`                                                                                                                                                  | Sem permissão CASL ou não é membro         |
+
+**`GET /organizations/:orgSlug/projects/:projectSlug`** — [`get-project.ts`](apps/api/src/http/routes/projects/get-project.ts)
+
+| Status | Corpo                                                                                                                                                                | Quando                                     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `200`  | `{ "project": { "id", "name", "slug", "ownerId", "organizationId", "description", "avatarUrl", "createdAt", "updatedAt", "owner": { "id", "name", "avatarUrl" } } }` | Detalhes do projeto retornados com sucesso |
+| `400`  | `{ "message": "Project not found" }`                                                                                                                                 | Projeto não encontrado                     |
+| `401`  | `{ "message": "..." }`                                                                                                                                               | Sem permissão CASL ou não é membro         |
+
+**`PUT /organizations/:slug/projects/:projectId`** — [`update-project.ts`](apps/api/src/http/routes/projects/update-project.ts)
+
+| Campo         | Regras                                 |
+| ------------- | -------------------------------------- |
+| `name`        | string                                 |
+| `description` | string ou `null`                       |
+| `avatarUrl`   | string ou `null` (deve ser URL válida) |
+
+| Status | Corpo                                | Quando                                             |
+| ------ | ------------------------------------ | -------------------------------------------------- |
+| `204`  | —                                    | Projeto atualizado com sucesso                     |
+| `400`  | `{ "message": "Project not found" }` | Projeto não encontrado                             |
+| `401`  | `{ "message": "..." }`               | Sem permissão CASL ou não é membro/dono do projeto |
+
+**`DELETE /organizations/:slug/projects/:projectId`** — [`delete-project.ts`](apps/api/src/http/routes/projects/delete-project.ts)
+
+| Status | Corpo                                | Quando                                             |
+| ------ | ------------------------------------ | -------------------------------------------------- |
+| `204`  | —                                    | Projeto removido com sucesso                       |
+| `400`  | `{ "message": "Project not found" }` | Projeto não encontrado                             |
+| `401`  | `{ "message": "..." }`               | Sem permissão CASL ou não é membro/dono do projeto |
+
+#### Rotas HTTP (`members`)
+
+| Método   | Rota                                     | Autenticação | Descrição                                                                       |
+| -------- | ---------------------------------------- | ------------ | ------------------------------------------------------------------------------- |
+| `GET`    | `/organizations/:slug/members`           | Bearer JWT   | Lista todos os membros da organização (exige permissão `get` em `User` no CASL) |
+| `PUT`    | `/organizations/:slug/members/:memberId` | Bearer JWT   | Atualiza o papel de um membro (exige permissão `update` em `User` no CASL)      |
+| `DELETE` | `/organizations/:slug/members/:memberId` | Bearer JWT   | Remove um membro da organização (exige permissão `delete` em `User` no CASL)    |
+
+Todas as rotas estão sob a tag OpenAPI `members`.
+
+**`GET /organizations/:slug/members`** — [`get-members.ts`](apps/api/src/http/routes/members/get-members.ts)
+
+| Status | Corpo                                                                       | Quando                                    |
+| ------ | --------------------------------------------------------------------------- | ----------------------------------------- |
+| `200`  | `{ "members": [{ "id", "userId", "name", "email", "avatarUrl", "role" }] }` | Lista de membros da organização retornada |
+| `401`  | `{ "message": "..." }`                                                      | Sem permissão CASL ou não é membro        |
+
+**`PUT /organizations/:slug/members/:memberId`** — [`update-member.ts`](apps/api/src/http/routes/members/update-member.ts)
+
+| Campo  | Regras                           |
+| ------ | -------------------------------- |
+| `role` | `ADMIN` ou `MEMBER` ou `BILLING` |
+
+| Status | Corpo                               | Quando                                 |
+| ------ | ----------------------------------- | -------------------------------------- |
+| `204`  | —                                   | Papel do membro atualizado com sucesso |
+| `400`  | `{ "message": "Member not found" }` | Membro não encontrado                  |
+| `401`  | `{ "message": "..." }`              | Sem permissão CASL ou não é membro     |
+
+**`DELETE /organizations/:slug/members/:memberId`** — [`remove-member.ts`](apps/api/src/http/routes/members/remove-member.ts)
+
+| Status | Corpo                  | Quando                                     |
+| ------ | ---------------------- | ------------------------------------------ |
+| `204`  | —                      | Membro removido da organização com sucesso |
+| `401`  | `{ "message": "..." }` | Sem permissão CASL ou não é membro         |
+
+#### Rotas HTTP (`invites`)
+
+| Método | Rota                           | Autenticação | Descrição                                                                          |
+| ------ | ------------------------------ | ------------ | ---------------------------------------------------------------------------------- |
+| `POST` | `/organizations/:slug/invites` | Bearer JWT   | Cria um novo convite (exige permissão `create` em `Invite` no CASL)                |
+| `GET`  | `/organizations/:slug/invites` | Bearer JWT   | Lista todos os convites da organização (exige permissão `get` em `Invite` no CASL) |
+| `GET`  | `/invites/:inviteId`           | —            | Busca detalhes de um convite específico por ID (livre)                             |
+
+Todas as rotas estão sob a tag OpenAPI `invites`.
+
+**`POST /organizations/:slug/invites`** — [`create-invite.ts`](apps/api/src/http/routes/invites/create-invite.ts)
+
+| Campo   | Regras                           |
+| ------- | -------------------------------- |
+| `email` | e-mail válido                    |
+| `role`  | `ADMIN` ou `MEMBER` ou `BILLING` |
+
+| Status | Corpo                                                                        | Quando                                                                         |
+| ------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `201`  | `{ "inviteId": "..." }`                                                      | Convite criado com sucesso                                                     |
+| `400`  | `{ "message": "Another invite with this e-mail already exists" }` ou similar | Convite duplicado ou membro já pertencente à org ou domínio automático ativado |
+| `401`  | `{ "message": "..." }`                                                       | Sem permissão CASL ou não é membro                                             |
+
+**`GET /organizations/:slug/invites`** — [`get-invites.ts`](apps/api/src/http/routes/invites/get-invites.ts)
+
+| Status | Corpo                                                                                 | Quando                                     |
+| ------ | ------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `200`  | `{ "invites": [{ "id", "email", "role", "createdAt", "author": { "id", "name" } }] }` | Lista de convites da organização retornada |
+| `401`  | `{ "message": "..." }`                                                                | Sem permissão CASL ou não é membro         |
+
+**`GET /invites/:inviteId`** — [`get-invite.ts`](apps/api/src/http/routes/invites/get-invite.ts)
+
+| Status | Corpo                                                                                                                       | Quando                                     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `200`  | `{ "invite": { "id", "email", "role", "createdAt", "author": { "id", "name", "avatarUrl" }, "organization": { "name" } } }` | Detalhes do convite retornados com sucesso |
+| `400`  | `{ "message": "Invite not found" }`                                                                                         | Convite não encontrado                     |
+
 ## Pacotes (`packages/`)
 
 ### `@saas/auth`
@@ -413,43 +568,43 @@ Biblioteca de autorização com [CASL](https://casl.js.org/) e tipagem com [Zod]
 
 #### Papéis
 
-| Papel     | Permissões (resumo) |
-| --------- | ------------------- |
+| Papel     | Permissões (resumo)                                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `ADMIN`   | `manage` em `all`, exceto `transfer_ownership` e `update` em `Organization` (permitidos apenas quando `ownerId` é o próprio usuário) |
-| `MEMBER`  | `get` em `User`; `create` e `get` em `Project`; `update` e `delete` em `Project` quando `ownerId` é o próprio usuário |
-| `BILLING` | `manage` em `Billing` |
+| `MEMBER`  | `get` em `User`; `create` e `get` em `Project`; `update` e `delete` em `Project` quando `ownerId` é o próprio usuário                |
+| `BILLING` | `manage` em `Billing`                                                                                                                |
 
 Regras completas em [`permissions.ts`](packages/auth/src/permissions.ts). Papéis válidos em [`roles.ts`](packages/auth/src/roles.ts).
 
 #### Subjects e ações
 
-| Subject        | Ações |
-| -------------- | ----- |
-| `User`         | `manage`, `get`, `update`, `delete` |
-| `Project`      | `manage`, `get`, `create`, `update`, `delete` |
+| Subject        | Ações                                              |
+| -------------- | -------------------------------------------------- |
+| `User`         | `manage`, `get`, `update`, `delete`                |
+| `Project`      | `manage`, `get`, `create`, `update`, `delete`      |
 | `Organization` | `manage`, `update`, `delete`, `transfer_ownership` |
-| `Invite`       | `manage`, `get`, `create`, `delete` |
-| `Billing`      | `manage`, `get`, `export` |
-| `all`          | `manage` (apenas `ADMIN`) |
+| `Invite`       | `manage`, `get`, `create`, `delete`                |
+| `Billing`      | `manage`, `get`, `export`                          |
+| `all`          | `manage` (apenas `ADMIN`)                          |
 
 Subjects tipados em [`packages/auth/src/subjects/`](packages/auth/src/subjects/). Modelos com condições de campo (ex.: `ownerId`) em [`packages/auth/src/models/`](packages/auth/src/models/).
 
 Para checar permissão sobre um recurso específico, passe a instância parseada pelo schema (o `detectSubjectType` usa `__typename`):
 
 ```ts
-import { defineAbilityFor, projectSchema } from '@saas/auth';
+import { defineAbilityFor, projectSchema } from '@saas/auth'
 
-const ability = defineAbilityFor({ id: 'user-1', role: 'MEMBER' });
+const ability = defineAbilityFor({ id: 'user-1', role: 'MEMBER' })
 
 const project = projectSchema.parse({
   id: 'project-1',
   ownerId: 'user-1',
-});
+})
 
-ability.can('get', 'User');        // true
-ability.can('delete', 'User');     // false
-ability.can('get', project);       // true
-ability.can('delete', project);    // true (owner)
+ability.can('get', 'User') // true
+ability.can('delete', 'User') // false
+ability.can('get', project) // true
+ability.can('delete', project) // true (owner)
 ```
 
 Implementação de referência em [`packages/auth/src/index.ts`](packages/auth/src/index.ts).
@@ -482,11 +637,11 @@ npx prettier --check .
 
 Configurações ESLint compartilhadas em [`config/eslint-config/`](config/eslint-config/). Exports do pacote:
 
-| Export      | Arquivo      | Uso                                                                 |
-| ----------- | ------------ | ------------------------------------------------------------------- |
-| `next-js`   | `next.js`    | Apps Next.js (base Rocketseat + `eslint-plugin-simple-import-sort`) |
-| `node`      | `node.js`    | Pacotes Node (ex.: `@saas/api`)                                     |
-| `library`   | `library.js` | Bibliotecas compartilhadas (ex.: `@saas/auth`)                      |
+| Export    | Arquivo      | Uso                                                                 |
+| --------- | ------------ | ------------------------------------------------------------------- |
+| `next-js` | `next.js`    | Apps Next.js (base Rocketseat + `eslint-plugin-simple-import-sort`) |
+| `node`    | `node.js`    | Pacotes Node (ex.: `@saas/api`)                                     |
+| `library` | `library.js` | Bibliotecas compartilhadas (ex.: `@saas/auth`)                      |
 
 Detalhes de uso em [`config/eslint-config/README.md`](config/eslint-config/README.md).
 
@@ -494,10 +649,10 @@ Detalhes de uso em [`config/eslint-config/README.md`](config/eslint-config/READM
 
 Configs TypeScript base em [`config/typescript-config/`](config/typescript-config/):
 
-| Arquivo         | Uso                                      |
-| --------------- | ---------------------------------------- |
-| `node.json`     | Apps e pacotes Node (ex.: `@saas/api`)   |
-| `library.json`  | Bibliotecas compartilhadas (ex.: `@saas/auth`) |
+| Arquivo        | Uso                                            |
+| -------------- | ---------------------------------------------- |
+| `node.json`    | Apps e pacotes Node (ex.: `@saas/api`)         |
+| `library.json` | Bibliotecas compartilhadas (ex.: `@saas/auth`) |
 
 Nos workspaces, estenda com `"extends": "@saas/tsconfig/node.json"` ou `"@saas/tsconfig/library.json"`.
 
@@ -515,18 +670,18 @@ Arquivos `.env` não são versionados (ver [`.gitignore`](.gitignore)). Use um �
 
 Definição e validação em [`packages/env/index.ts`](packages/env/index.ts).
 
-| Variável | Obrigatória | Descrição |
-| -------- | ----------- | --------- |
-| `SERVER_PORT` | Não (padrão `3333`) | Porta HTTP da API |
-| `DATABASE_URL` | Sim | URL PostgreSQL (Prisma) |
-| `JWT_SECRET` | Sim | Chave para assinar/validar JWT |
-| `GITHUB_CLIENT_ID` | Sim* | Client ID do app OAuth GitHub |
-| `GITHUB_CLIENT_SECRET` | Sim* | Client secret do app OAuth GitHub |
-| `GITHUB_REDIRECT_URI` | Sim* | URI de callback registrada no GitHub |
-| `NEXT_PUBLIC_API_URL` | Sim** | URL base da API (apps Next.js) |
-| `NEXT_PUBLIC_GITHUB_CLIENT_ID` | Sim** | Client ID exposto ao browser |
-| `NEXT_PUBLIC_JWT_SECRET` | Sim** | Mesmo segredo JWT no cliente (se aplicável) |
-| `NODE_ENV` | Não (padrão `development`) | Ambiente de execução |
+| Variável                       | Obrigatória                | Descrição                                   |
+| ------------------------------ | -------------------------- | ------------------------------------------- |
+| `SERVER_PORT`                  | Não (padrão `3333`)        | Porta HTTP da API                           |
+| `DATABASE_URL`                 | Sim                        | URL PostgreSQL (Prisma)                     |
+| `JWT_SECRET`                   | Sim                        | Chave para assinar/validar JWT              |
+| `GITHUB_CLIENT_ID`             | Sim\*                      | Client ID do app OAuth GitHub               |
+| `GITHUB_CLIENT_SECRET`         | Sim\*                      | Client secret do app OAuth GitHub           |
+| `GITHUB_REDIRECT_URI`          | Sim\*                      | URI de callback registrada no GitHub        |
+| `NEXT_PUBLIC_API_URL`          | Sim\*\*                    | URL base da API (apps Next.js)              |
+| `NEXT_PUBLIC_GITHUB_CLIENT_ID` | Sim\*\*                    | Client ID exposto ao browser                |
+| `NEXT_PUBLIC_JWT_SECRET`       | Sim\*\*                    | Mesmo segredo JWT no cliente (se aplicável) |
+| `NODE_ENV`                     | Não (padrão `development`) | Ambiente de execução                        |
 
 \* Necessárias para `POST /sessions/github`.  
 \*\* Usadas quando houver app Next.js no monorepo; podem ser preenchidas com valores de desenvolvimento mesmo rodando só a API.
