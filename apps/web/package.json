@@ -12,8 +12,9 @@
     "@base-ui/react": "^1.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "ky": "^2.0.2",
     "lucide-react": "^1.16.0",
-    "next": "15.0.0-rc.1",
+    "next": "^15.5.18",
     "react": "19.0.0-rc-cd22717c-20241013",
     "react-dom": "19.0.0-rc-cd22717c-20241013",
     "shadcn": "^4.8.0",
@@ -28,6 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^8.57.1",
     "postcss": "^8",
     "tailwindcss": "^4.3.0",
     "typescript": "^5"

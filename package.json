@@ -13,8 +13,12 @@
   },
   "prettier": "@saas/prettier",
   "devDependencies": {
+    "@rocketseat/eslint-config": "^2.2.2",
     "@saas/prettier": "*",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
     "prettier": "^3.7.4",
+    "react": "19.0.0-rc-cd22717c-20241013",
+    "react-dom": "19.0.0-rc-cd22717c-20241013",
     "turbo": "^2.9.12",
     "typescript": "5.9.2"
   },
