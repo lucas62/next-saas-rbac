@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
+    "./next": "./next.js",
     "./next-js": "./next.js",
     "./node": "./node.js",
     "./library": "./library.js"
