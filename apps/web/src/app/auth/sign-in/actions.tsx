@@ -1,13 +1,6 @@
 'use server'
 
-import ky from 'ky'
-
-const api = ky.create({
-  prefix: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
+import { signInWithPassword } from '@/http/sign-inwith-password'
 
 export async function signInWithEmailAndPassword(
   data: FormData,
@@ -15,13 +8,13 @@ export async function signInWithEmailAndPassword(
   const { email, password } = Object.fromEntries(data)
 
   try {
-    await api
-      .post('sessions/password', {
-        json: { email, password },
-      })
-      .json()
+    const result = await signInWithPassword({
+      email: email.toString(),
+      password: password.toString(),
+    })
+    console.log(result)
   } catch (error) {
-    console.error('Error signing in:', error)
+    console.error(error)
   }
 }
 
