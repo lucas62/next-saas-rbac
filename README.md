@@ -1,10 +1,45 @@
-# next-saas-rbac
+# Next.js SaaS RBAC Monorepo
 
-Monorepo [Turborepo](https://turbo.build/repo) com workspaces npm para um SaaS com controle de acesso baseado em papéis (RBAC). O pacote `@saas/auth` centraliza permissões com [CASL](https://casl.js.org/); a API em `apps/api` consome esse pacote, valida variáveis de ambiente via `@saas/env`, expõe rotas de autenticação (cadastro, login com senha ou GitHub, perfil e recuperação de senha), rotas de organizações com checagem de permissões, documentação OpenAPI em `/docs` e persiste dados com [Prisma](https://www.prisma.io/) e PostgreSQL.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js" alt="Next.js 15" />
+  <img src="https://img.shields.io/badge/React-19.0-blue?style=for-the-badge&logo=react" alt="React 19" />
+  <img src="https://img.shields.io/badge/Fastify-5.8-000000?style=for-the-badge&logo=fastify&logoColor=white" alt="Fastify 5" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4.0-38BDF8?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS v4" />
+  <img src="https://img.shields.io/badge/Prisma-7.8-2D3748?style=for-the-badge&logo=prisma" alt="Prisma 7" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Turborepo-2.0-FF007A?style=for-the-badge&logo=turborepo" alt="Turborepo" />
+  <img src="https://img.shields.io/badge/CASL-6.8-red?style=for-the-badge" alt="CASL RBAC" />
+</p>
 
-**Requisitos:** Node.js `>=18` · npm `11.11.0` · [Docker](https://www.docker.com/) (para o banco local)
+---
 
-## Pré-requisitos
+## 🚀 Resumo do Projeto & Tecnologias
+
+Este projeto consiste em um **SaaS Multi-tenant completo** com **Controle de Acesso Baseado em Papéis (RBAC)** de altíssima performance, implementado como um monorepo gerenciado pelo [Turborepo](https://turbo.build/repo). Ele foi desenvolvido utilizando tecnologias modernas tanto no Frontend quanto no Backend, permitindo a separação limpa de responsabilidades com o máximo aproveitamento de código.
+
+### 🛠️ Core Tech Stack & Arquitetura
+
+1. **Monorepo (Turborepo)**: Orquestração e cache eficiente de builds, lints e tarefas nos workspaces npm (`apps/*`, `packages/*`, `config/*`).
+2. **Frontend (`apps/web`)**: 
+   - **Next.js 15 (App Router)** & **React 19** para renderização híbrida de alta performance.
+   - **React Server Actions** combinados com o novo hook `useActionState` para gerenciamento robusto de formulários sem complexidade de estados no lado do cliente.
+   - **Tailwind CSS v4** & **PostCSS** para estilizações modernas de alto nível.
+   - **Base UI** (primitives acessíveis) & **Shadcn** para componentização refinada e responsiva.
+   - **Ky Client** para requisições HTTP tipadas e automação de retentativas.
+3. **Backend (`apps/api`)**:
+   - Servidor HTTP com **Fastify 5**, garantindo latência extremamente baixa.
+   - Schemas e validação de ponta a ponta (OpenAPI) usando **Zod** e **fastify-type-provider-zod**.
+   - Geração automática e interativa de documentação OpenAPI em `/docs`.
+4. **Controle de Acesso (`packages/auth`)**:
+   - Políticas flexíveis e centralizadas através do **CASL (Role-Based Access Control)**.
+   - Definição rígida de papéis (`ADMIN`, `MEMBER`, `BILLING`) e checagem fina de permissões sobre recursos (`Project`, `User`, `Organization`, etc.).
+5. **Persistência & Infraestrutura**:
+   - **Prisma 7** como ORM integrado com PostgreSQL e driver adapter moderno.
+   - **Docker Compose** para subida rápida e padronizada do banco de dados local.
+
+---
+
+## 📋 Pré-requisitos
 
 | Item    | Versão                           |
 | ------- | -------------------------------- |
@@ -19,6 +54,7 @@ corepack enable
 ```
 
 Instale as dependências **sempre na raiz** do monorepo. Dependências entre pacotes internos usam `"*"` (por exemplo, `@saas/auth` em `apps/api`), e não o protocolo `workspace:*`, por compatibilidade com o resolver do npm 11.
+
 
 ## Primeiros passos
 
@@ -121,49 +157,182 @@ npm run db:seed --workspace=@saas/api
 npm run db:studio --workspace=@saas/api
 ```
 
-## Estrutura do monorepo
+## 📁 Estrutura do monorepo
+
+O repositório é um **monorepo npm** orquestrado pelo [Turborepo](https://turbo.build/repo). Três globs de workspace na raiz definem onde vive cada pacote:
+
+| Glob | Papel |
+| ---- | ----- |
+| [`apps/*`](apps/) | Aplicações executáveis (API e frontend) |
+| [`packages/*`](packages/) | Bibliotecas compartilhadas de domínio e infraestrutura |
+| [`config/*`](config/) | Configurações centralizadas (ESLint, Prettier, TypeScript) |
+
+### Workspaces
+
+| Caminho | Pacote npm | Porta (dev) | Responsabilidade |
+| ------- | ---------- | ------------- | ---------------- |
+| [`apps/api`](apps/api/) | `@saas/api` | `3333` | API HTTP (Fastify), Prisma, JWT, OpenAPI em `/docs` |
+| [`apps/web`](apps/web/) | `web` | `3000` | Interface Next.js 15 (App Router) + React 19 |
+| [`packages/auth`](packages/auth/) | `@saas/auth` | — | RBAC com CASL (papéis, subjects, `defineAbilityFor`) |
+| [`packages/env`](packages/env/) | `@saas/env` | — | Variáveis de ambiente validadas com Zod |
+| [`config/eslint-config`](config/eslint-config/) | `@saas/eslint-config` | — | Presets ESLint (`node`, `next-js`, `library`) |
+| [`config/prettier`](config/prettier/) | `@saas/prettier` | — | Formatação compartilhada (incl. Tailwind) |
+| [`config/typescript-config`](config/typescript-config/) | `@saas/tsconfig` | — | Bases `node.json`, `library.json`, `nextjs.json` |
+
+Dependências internas usam `"*"` no `package.json` (ex.: `@saas/auth` em `@saas/api`), compatível com o resolver do npm 11.
+
+### Diagrama de dependências
 
 ```mermaid
 flowchart TB
-  root[next-saas-rbac]
-  root --> apps[apps/*]
-  root --> packages[packages/*]
-  root --> config[config/*]
-  apps --> api["@saas/api"]
-  packages --> auth["@saas/auth"]
-  packages --> envPkg["@saas/env"]
+  subgraph root["Raiz do repositório"]
+    turbo["turbo.json"]
+    compose["docker-compose.yml"]
+    envFile[".env (raiz)"]
+  end
+
+  subgraph apps["apps/ — aplicações"]
+    api["@saas/api<br/><small>Fastify · Prisma · :3333</small>"]
+    web["web<br/><small>Next.js 15 · :3000</small>"]
+  end
+
+  subgraph packages["packages/ — bibliotecas"]
+    auth["@saas/auth<br/><small>CASL · RBAC</small>"]
+    envPkg["@saas/env<br/><small>Zod · env</small>"]
+  end
+
+  subgraph config["config/ — tooling"]
+    eslint["@saas/eslint-config"]
+    prettier["@saas/prettier"]
+    tsconfig["@saas/tsconfig"]
+  end
+
+  db[("PostgreSQL<br/><small>Docker :5432</small>")]
+
   api --> auth
   api --> envPkg
-  api --> db[(PostgreSQL)]
-  config --> eslint["@saas/eslint-config"]
-  config --> prettier["@saas/prettier"]
-  config --> tsconfig["@saas/tsconfig"]
+  api --> db
+  envFile -.-> api
+  envFile -.-> web
+  web -.->|"HTTP (Ky)"| api
+
+  api -.-> eslint
+  api -.-> prettier
+  api -.-> tsconfig
+  web -.-> eslint
+  web -.-> prettier
+  web -.-> tsconfig
+  auth -.-> eslint
+  auth -.-> tsconfig
 ```
 
+**Fluxo em desenvolvimento:** `docker compose up` sobe o banco → `.env` na raiz alimenta `@saas/api` e apps Next → `npm run dev` dispara as tasks `dev` de cada workspace via Turborepo.
+
+### Árvore de diretórios
+
+<details>
+<summary><strong>Ver árvore completa</strong></summary>
+
 ```
-.
-├── apps/
-│   └── api/                 # @saas/api — API Fastify + Prisma
-│       ├── prisma/          # schema, migrations e seeds
+next-saas-rbac/
+│
+├── apps/                              # Aplicações
+│   ├── api/          (@saas/api)      # Backend
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma          # Modelos (User, Organization, Project, …)
+│   │   │   ├── migrations/            # Histórico de migrations
+│   │   │   └── seeds.ts               # Dados de desenvolvimento
+│   │   └── src/
+│   │       ├── http/
+│   │       │   ├── server.ts          # Entrada Fastify, Swagger, JWT, CORS
+│   │       │   ├── error-handler.ts
+│   │       │   ├── middleware/auth.ts # JWT + membership por slug
+│   │       │   └── routes/            # Rotas por domínio (ver tabela abaixo)
+│   │       ├── lib/prisma.ts          # Cliente Prisma (adapter pg)
+│   │       └── utils/                 # slug, permissões CASL
+│   │
+│   └── web/          (web)            # Frontend
 │       └── src/
-│           ├── http/        # servidor, middleware JWT, rotas (auth/, orgs/) e Swagger UI
-│           ├── lib/         # cliente Prisma compartilhado
-│           └── utils/       # helpers (slug, permissões CASL)
-├── packages/
-│   ├── auth/                # @saas/auth — RBAC com CASL
-│   └── env/                 # @saas/env — variáveis de ambiente tipadas (Zod)
-├── config/
-│   ├── eslint-config/       # @saas/eslint-config
-│   ├── prettier/            # @saas/prettier
-│   └── typescript-config/   # @saas/tsconfig
-├── docker-compose.yml       # PostgreSQL local
-├── package.json
-└── turbo.json
+│           ├── app/                   # App Router (/, auth/sign-in, auth/sign-up, …)
+│           ├── components/ui/         # Primitives (Button, Input, Alert, …)
+│           ├── http/                  # Cliente Ky + chamadas à API
+│           ├── lib/utils.ts
+│           └── assets/
+│
+├── packages/                          # Código compartilhado
+│   ├── auth/         (@saas/auth)
+│   │   └── src/
+│   │       ├── permissions.ts         # Regras CASL por papel
+│   │       ├── roles.ts
+│   │       ├── subjects/              # User, Project, Organization, Invite, Billing
+│   │       └── models/                # Schemas Zod com __typename
+│   └── env/          (@saas/env)
+│       └── index.ts                   # Validação de variáveis (.env na raiz)
+│
+├── config/                            # Tooling compartilhado
+│   ├── eslint-config/
+│   ├── prettier/
+│   └── typescript-config/
+│
+├── docker-compose.yml                 # PostgreSQL local
+├── package.json                       # Workspaces + scripts globais (db:*, dev, build)
+└── turbo.json                         # Pipeline Turborepo (build, dev, lint, check-types)
 ```
 
-Workspaces npm definidos na raiz: `apps/*`, `packages/*`, `config/*`.
+</details>
+
+### Domínios da API (`apps/api/src/http/routes/`)
+
+As rotas HTTP ficam agrupadas por contexto de negócio. Cada pasta corresponde a uma tag no OpenAPI (`/docs`):
+
+| Pasta | Tag OpenAPI | Exemplos de responsabilidade |
+| ----- | ----------- | --------------------------- |
+| `auth/` | `auth` | Conta, sessões (senha/GitHub), perfil, recuperação de senha |
+| `orgs/` | `organizations` | CRUD de organizações, membership, transferência de ownership |
+| `projects/` | `projects` | Projetos por organização (slug) |
+| `members/` | `members` | Listagem, atualização de papel e remoção de membros |
+| `invites/` | `invites` | Convites, aceite/rejeição, revogação, pendentes |
+| `billing/` | `billing` | Faturamento da organização |
+| `_errors/` | — | Classes de erro HTTP reutilizáveis |
+
+Detalhes de endpoints, payloads e exemplos `curl` estão nas seções [Aplicações (`apps/`)](#aplicações-apps) abaixo.
 
 ## Aplicações (`apps/`)
+
+### `web` (Frontend Next.js)
+
+Interface visual do SaaS construída com **Next.js 15 (App Router)** e **React 19** em [`apps/web/`](apps/web/). Oferece uma experiência premium com layouts responsivos, suporte nativo a temas (Light/Dark mode) e fluxos robustos de autenticação integrados ao backend via cliente HTTP otimizado.
+
+| Recurso / Componente | Descrição / Tecnologias |
+| -------------------- | ----------------------- |
+| **Next.js 15 & React 19** | Renderização híbrida (SSR/Client-side) e otimização automatizada utilizando recursos de ponta do React. |
+| **Server Actions & Hooks** | Autenticação moderna usando `useActionState` e Server Actions para gerenciar chamadas de API com feedback visual instantâneo (`isPending`). |
+| **Tailwind CSS v4** | Utiliza a mais recente especificação do Tailwind com `@tailwindcss/postcss` para estilizações super rápidas e responsivas sem arquivos extensivos de configuração. |
+| **Base UI & Shadcn** | Componentes estilizados e acessíveis baseados em primitives robustos da `@base-ui/react` e designs polidos. |
+| **Cliente de API Ky** | Comunicação com o backend Fastify feita de forma simplificada e tipada via [Ky](https://github.com/sindresorhus/ky). |
+
+#### Estrutura de Rotas e Telas
+- **Página Inicial (`/`)**: Dashboard completo do workspace, apresentando o status geral do sistema, formulários interativos de convite de membros e controle rápido de permissões/estilos.
+- **Autenticação (`/auth/`)**:
+  - `sign-in/`: Tela de Login por e-mail/senha e login social com o GitHub.
+  - `sign-up/`: Criação de conta de novos usuários.
+  - `forgot-password/`: Recuperação e redefinição de senha com tokens seguros.
+
+#### Estrutura Interna do Frontend (`apps/web/src/`)
+- **`app/`**: Rotas do Next.js App Router, layouts globais e CSS base.
+  - `auth/`: Páginas e formulários de login, cadastro e recuperação de senha.
+  - `globals.css`: Variáveis CSS, importações do Tailwind v4 e definições de tema Dark/Light.
+- **`components/ui/`**: Componentes reutilizáveis atômicos (Button, Input, Alert, Separator, Label) criados com primitives do `@base-ui/react` e estilizados refinadamente.
+- **`http/`**: Chamadas HTTP para o backend Fastify centralizadas e encapsuladas.
+
+#### Como Executar o Frontend em Isolamento
+Caso deseje rodar especificamente a aplicação cliente:
+```bash
+npx turbo run dev --filter=web
+```
+A interface estará disponível em `http://localhost:3000`.
+
+---
 
 ### `@saas/api`
 
