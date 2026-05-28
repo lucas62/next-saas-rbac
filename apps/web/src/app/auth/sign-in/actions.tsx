@@ -9,10 +9,20 @@ const api = ky.create({
   },
 })
 
-export async function signInWithEmailAndPassword(data: FormData) {
-  await api.post('auth/login', {
-    json: Object.fromEntries(data),
-  })
+export async function signInWithEmailAndPassword(
+  data: FormData,
+): Promise<void> {
+  const { email, password } = Object.fromEntries(data)
+
+  try {
+    await api
+      .post('sessions/password', {
+        json: { email, password },
+      })
+      .json()
+  } catch (error) {
+    console.error('Error signing in:', error)
+  }
 }
 
 export async function signInWithGithub() {}

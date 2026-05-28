@@ -11,6 +11,7 @@
     "db:studio": "npm run db:studio --workspace=@saas/api",
     "db:seed": "npm run db:seed --workspace=@saas/api"
   },
+  "packageManager": "npm@10.9.2",
   "prettier": "@saas/prettier",
   "devDependencies": {
     "@rocketseat/eslint-config": "^2.2.2",
@@ -25,7 +26,6 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@11.11.0",
   "workspaces": [
     "apps/*",
     "packages/*",
