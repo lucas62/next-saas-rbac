@@ -3,9 +3,16 @@
 import { signInWithPassword } from '@/http/sign-inwith-password'
 
 export async function signInWithEmailAndPassword(
+  previousState: unknown,
   data: FormData,
-): Promise<void> {
+) {
   const { email, password } = Object.fromEntries(data)
+
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ success: true })
+    }, 2000)
+  })
 
   try {
     const result = await signInWithPassword({
