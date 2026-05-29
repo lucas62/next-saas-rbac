@@ -3,7 +3,7 @@
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 
 import githubIcon from '@/assets/github-icon.svg'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useFormState } from '@/hooks/use-form-state'
 
+import { signInWithGithub } from '../actions'
 import { signInWithEmailAndPassword } from './actions'
 
 export function SignInForm() {
@@ -36,81 +37,85 @@ export function SignInForm() {
   )
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      {success === false && message && (
-        <Alert variant="destructive">
-          <AlertTriangle className="size-4" />
-          <AlertTitle>Sign in failed!</AlertTitle>
-          <AlertDescription>
-            <p>{message}</p>
-          </AlertDescription>
-        </Alert>
-      )}
-      <div className="space-y-1">
-        <Label htmlFor="email">E-mail</Label>
-        <Input name="email" id="email" type="email" required />
-
-        {errors?.properties?.email?.errors && (
-          <p className="text-sm text-red-500">
-            {errors.properties.email.errors.join(', ')}
-          </p>
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {success === false && message && (
+          <Alert variant="destructive">
+            <AlertTriangle className="size-4" />
+            <AlertTitle>Sign in failed!</AlertTitle>
+            <AlertDescription>
+              <p>{message}</p>
+            </AlertDescription>
+          </Alert>
         )}
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="password">Password</Label>
-        <Input name="password" id="password" type="password" required />
+        <div className="space-y-1">
+          <Label htmlFor="email">E-mail</Label>
+          <Input name="email" id="email" type="email" required />
 
-        {errors?.properties?.password?.errors && (
-          <p className="text-sm text-red-500">
-            {errors.properties.password.errors.join(', ')}
-          </p>
-        )}
+          {errors?.properties?.email?.errors && (
+            <p className="text-sm text-red-500">
+              {errors.properties.email.errors.join(', ')}
+            </p>
+          )}
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="password">Password</Label>
+          <Input name="password" id="password" type="password" required />
 
-        <Link
-          href="/auth/forgot-password"
-          className="text-muted-foreground cursor-pointer text-xs font-medium hover:underline"
+          {errors?.properties?.password?.errors && (
+            <p className="text-sm text-red-500">
+              {errors.properties.password.errors.join(', ')}
+            </p>
+          )}
+
+          <Link
+            href="/auth/forgot-password"
+            className="text-muted-foreground cursor-pointer text-xs font-medium hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        </div>
+        <Button
+          disabled={isPending}
+          type="submit"
+          className="w-full cursor-pointer"
         >
-          Forgot your password?
-        </Link>
-      </div>
-      <Button
-        disabled={isPending}
-        type="submit"
-        className="w-full cursor-pointer"
-      >
-        {isPending ? (
-          <>
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          </>
-        ) : (
-          'Sign in with e-mail'
-        )}
-      </Button>
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            </>
+          ) : (
+            'Sign in with e-mail'
+          )}
+        </Button>
 
-      <Button
-        disabled={isPending}
-        variant="link"
-        className="w-full cursor-pointer"
-        size="sm"
-        render={<Link href="/auth/sign-up" />}
-      >
-        Create new account
-      </Button>
+        <Button
+          disabled={isPending}
+          variant="link"
+          className="w-full cursor-pointer"
+          size="sm"
+          render={<Link href="/auth/sign-up" />}
+        >
+          Create new account
+        </Button>
 
-      <Separator />
+        <Separator />
+      </form>
 
-      <Button
-        disabled={isPending}
-        variant="outline"
-        className="w-full cursor-pointer"
-      >
-        <Image
-          src={githubIcon}
-          alt="Github"
-          className="mr-2 size-4 dark:invert"
-        />
-        Sign in with GitHub
-      </Button>
-    </form>
+      <form action={signInWithGithub}>
+        <Button
+          type="submit"
+          variant="outline"
+          className="w-full cursor-pointer"
+        >
+          <Image
+            src={githubIcon}
+            alt="Github"
+            className="mr-2 size-4 dark:invert"
+          />
+          Sign in with GitHub
+        </Button>
+      </form>
+    </div>
   )
 }

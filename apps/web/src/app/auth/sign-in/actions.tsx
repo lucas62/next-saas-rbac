@@ -50,7 +50,3 @@ export async function signInWithEmailAndPassword(data: FormData) {
 
   return { success: true, message: null, errors: null }
 }
-
-export async function signInWithGithub() {}
-
-export async function forgotPassword() {}
