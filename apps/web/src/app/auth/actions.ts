@@ -16,7 +16,7 @@ export async function signInWithGithub() {
   return redirect(githubSignInURL.toString())
 }
 
-export async function singOut() {
+export async function signOut() {
   const cookieStore = await cookies()
   cookieStore.delete('token')
 
