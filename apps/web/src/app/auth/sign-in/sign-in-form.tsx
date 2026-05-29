@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { signInWithEmailAndPassword } from './actions'
 
 export function SignInForm() {
+  // exemplo de uso useActionState, caso queira o uso do reset de form utilizar ele
   // const [{ success, message, errors }, formAction, isPending] = useActionState(
   //   signInWithEmailAndPassword,
   //   {
