@@ -4,6 +4,7 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,13 @@ export function SignInForm() {
   // )
 
   const router = useRouter()
+  const [isGithubPending, startGithubTransition] = useTransition()
+
+  function handleSignInWithGithub() {
+    startGithubTransition(async () => {
+      await signInWithGithub()
+    })
+  }
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
     signInWithEmailAndPassword,
@@ -101,12 +109,15 @@ export function SignInForm() {
         <Separator />
       </form>
 
-      <form action={signInWithGithub}>
-        <Button
-          type="submit"
-          variant="outline"
-          className="w-full cursor-pointer"
-        >
+      <Button
+        onClick={handleSignInWithGithub}
+        variant="outline"
+        className="w-full cursor-pointer"
+        disabled={isPending || isGithubPending}
+      >
+        {isGithubPending ? (
+          <Loader2 className="mr-2 size-4 animate-spin" />
+        ) : (
           <Image
             src="/github-icon.svg"
             width={16}
@@ -114,9 +125,9 @@ export function SignInForm() {
             alt="Github"
             className="mr-2 size-4 dark:invert"
           />
-          Sign in with GitHub
-        </Button>
-      </form>
+        )}
+        Sign in with GitHub
+      </Button>
     </div>
   )
 }
