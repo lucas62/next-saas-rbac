@@ -1,28 +1,43 @@
 'use server'
 
+import { HTTPError } from 'ky'
+import { z } from 'zod'
+
 import { signInWithPassword } from '@/http/sign-inwith-password'
 
-export async function signInWithEmailAndPassword(
-  previousState: unknown,
-  data: FormData,
-) {
-  const { email, password } = Object.fromEntries(data)
+const signInSchema = z.object({
+  email: z.email({ message: 'Please provide a valid e-mail.' }),
+  password: z.string().min(1, { message: 'Please provide a password.' }),
+})
 
-  await new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true })
-    }, 2000)
-  })
+export async function signInWithEmailAndPassword(_: unknown, data: FormData) {
+  const result = signInSchema.safeParse(Object.fromEntries(data))
+
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors
+
+    return { success: false, message: null, errors }
+  }
+  const { email, password } = result.data
 
   try {
-    const result = await signInWithPassword({
-      email: email.toString(),
-      password: password.toString(),
+    await signInWithPassword({
+      email,
+      password,
     })
-    console.log(result)
   } catch (error) {
-    console.error(error)
+    if (error instanceof HTTPError) {
+      const { message } = await error.data
+      return { success: false, message, errors: null }
+    }
+
+    return {
+      success: false,
+      message: 'Unexpected error, please try again in a few minutes.',
+      errors: null,
+    }
   }
+  return { success: true, message: null, errors: null }
 }
 
 export async function signInWithGithub() {}
