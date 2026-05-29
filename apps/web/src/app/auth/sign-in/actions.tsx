@@ -3,7 +3,7 @@
 import { HTTPError } from 'ky'
 import { z } from 'zod'
 
-import { signInWithPassword } from '@/http/sign-inwith-password'
+import { signInWithPassword } from '@/http/sign-in-with-password'
 
 const signInSchema = z.object({
   email: z.email({ message: 'Please provide a valid e-mail.' }),

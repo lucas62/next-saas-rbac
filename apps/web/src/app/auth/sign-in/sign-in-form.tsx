@@ -3,7 +3,6 @@
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useTransition } from 'react'
 
 import githubIcon from '@/assets/github-icon.svg'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { useFormState } from '@/hooks/use-form-state'
 
 import { signInWithEmailAndPassword } from './actions'
 
@@ -25,25 +25,9 @@ export function SignInForm() {
   //   },
   // )
 
-  const [isPending, startTransition] = useTransition()
-
-  const [{ success, message, errors }, setFormState] = useState<
-    Awaited<ReturnType<typeof signInWithEmailAndPassword>>
-  >({
-    success: false,
-    message: null,
-    errors: null,
-  })
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    const formData = new FormData(event.currentTarget)
-    startTransition(async () => {
-      const result = await signInWithEmailAndPassword(formData)
-      setFormState(result)
-    })
-  }
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
+    signInWithEmailAndPassword,
+  )
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
