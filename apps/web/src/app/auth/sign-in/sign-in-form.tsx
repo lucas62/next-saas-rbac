@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import githubIcon from '@/assets/github-icon.svg'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -109,7 +108,9 @@ export function SignInForm() {
           className="w-full cursor-pointer"
         >
           <Image
-            src={githubIcon}
+            src="/github-icon.svg"
+            width={16}
+            height={16}
             alt="Github"
             className="mr-2 size-4 dark:invert"
           />
