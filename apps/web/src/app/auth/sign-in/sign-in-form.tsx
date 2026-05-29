@@ -3,7 +3,7 @@
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useActionState } from 'react'
+import { useState, useTransition } from 'react'
 
 import githubIcon from '@/assets/github-icon.svg'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -15,17 +15,37 @@ import { Separator } from '@/components/ui/separator'
 import { signInWithEmailAndPassword } from './actions'
 
 export function SignInForm() {
-  const [{ success, message, errors }, formAction, isPending] = useActionState(
-    signInWithEmailAndPassword,
-    {
-      success: false,
-      message: null,
-      errors: null,
-    },
-  )
+  // const [{ success, message, errors }, formAction, isPending] = useActionState(
+  //   signInWithEmailAndPassword,
+  //   {
+  //     success: false,
+  //     message: null,
+  //     errors: null,
+  //   },
+  // )
+
+  const [isPending, startTransition] = useTransition()
+
+  const [{ success, message, errors }, setFormState] = useState<
+    Awaited<ReturnType<typeof signInWithEmailAndPassword>>
+  >({
+    success: false,
+    message: null,
+    errors: null,
+  })
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    startTransition(async () => {
+      const result = await signInWithEmailAndPassword(formData)
+      setFormState(result)
+    })
+  }
 
   return (
-    <form action={formAction} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       {success === false && message && (
         <Alert variant="destructive">
           <AlertTriangle className="size-4" />
@@ -39,16 +59,20 @@ export function SignInForm() {
         <Label htmlFor="email">E-mail</Label>
         <Input name="email" id="email" type="email" required />
 
-        {errors?.email && (
-          <p className="text-sm text-red-500">{errors.email.join(', ')}</p>
+        {errors?.properties?.email?.errors && (
+          <p className="text-sm text-red-500">
+            {errors.properties.email.errors.join(', ')}
+          </p>
         )}
       </div>
       <div className="space-y-1">
         <Label htmlFor="password">Password</Label>
         <Input name="password" id="password" type="password" required />
 
-        {errors?.password && (
-          <p className="text-sm text-red-500">{errors.password.join(', ')}</p>
+        {errors?.properties?.password?.errors && (
+          <p className="text-sm text-red-500">
+            {errors.properties.password.errors.join(', ')}
+          </p>
         )}
 
         <Link
