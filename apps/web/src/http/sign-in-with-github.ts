@@ -11,7 +11,7 @@ interface SignInWithGithubResponse {
 export async function signInWithGithub({
   code,
 }: SignInWithGithubRequest): Promise<SignInWithGithubResponse> {
-  return api
+  return await api
     .post('sessions/github', {
       json: { code },
     })
