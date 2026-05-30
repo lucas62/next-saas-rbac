@@ -1,10 +1,8 @@
 import { ChevronsUpDown, PlusCircle } from 'lucide-react'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 
-import { getOrganization } from '@/http/get-organization'
-import { getInitials } from '@/utils/get-initials'
-
-import { Avatar, AvatarFallback, AvatarImage } from './avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,15 +11,41 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from './dropdown-menu'
+} from '@/components/ui/dropdown-menu'
+import { getOrganization } from '@/http/get-organization'
+import { getInitials } from '@/utils/get-initials'
 
 export async function OrganizationSwitcher() {
+  const currentOrg = (await cookies()).get('org')?.value
   const { organizations } = await getOrganization()
+
+  const currentOrganization = organizations.find(
+    (org) => org.slug === currentOrg,
+  )
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="focus-visible:ring-primary hover:bg-muted flex w-[168px] cursor-pointer items-center gap-2 rounded p-1 text-sm font-medium outline-none focus-visible:ring-2">
-        <span className="text-muted-foreground">Select Organization</span>
+        {!currentOrganization ? (
+          <span className="text-muted-foreground">Select Organization</span>
+        ) : (
+          <>
+            <Avatar className="mr-2 size-4">
+              {currentOrganization.avatarUrl && (
+                <AvatarImage
+                  src={currentOrganization.avatarUrl}
+                  alt={`${currentOrganization.slug} avatar`}
+                />
+              )}
+              <AvatarFallback>
+                {getInitials(currentOrganization.name)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="truncate text-left">
+              {currentOrganization.name}
+            </span>
+          </>
+        )}
         <ChevronsUpDown className="text-muted-foreground ml-auto size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -38,7 +62,7 @@ export async function OrganizationSwitcher() {
               key={organization.slug}
               render={<Link href={`/org/${organization.slug}`} />}
             >
-              <Avatar className="mr-2 size-5">
+              <Avatar className="mr-2 size-4">
                 {organization.avatarUrl && (
                   <AvatarImage
                     src={organization.avatarUrl}

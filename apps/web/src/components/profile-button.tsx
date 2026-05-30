@@ -2,15 +2,14 @@ import { ChevronDown, LogOut, User } from 'lucide-react'
 import Link from 'next/link'
 
 import { auth } from '@/auth/auth'
-import { getInitials } from '@/utils/get-initials'
-
-import { Avatar, AvatarFallback, AvatarImage } from './avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './dropdown-menu'
+} from '@/components/ui/dropdown-menu'
+import { getInitials } from '@/utils/get-initials'
 
 export async function ProfileButton() {
   const { user } = await auth()
