@@ -32,7 +32,7 @@ export async function ProfileButton() {
         <ChevronDown className="text-muted-foreground size-4" />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" sideOffset={12}>
         <DropdownMenuItem render={<Link href="/account" />}>
           <User className="mr-2 size-4" />
           My Account
