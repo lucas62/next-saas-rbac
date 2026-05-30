@@ -19,7 +19,7 @@ export async function ProfileButton() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-3 outline-none">
+      <DropdownMenuTrigger className="flex cursor-pointer items-center gap-3 outline-none">
         <div>
           <span className="flex flex-col items-end">{name}</span>
           <span className="text-muted-foreground text-xs">{email}</span>
@@ -33,11 +33,17 @@ export async function ProfileButton() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" sideOffset={12}>
-        <DropdownMenuItem render={<Link href="/account" />}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          render={<Link href="/account" />}
+        >
           <User className="mr-2 size-4" />
           My Account
         </DropdownMenuItem>
-        <DropdownMenuItem render={<a href="/api/auth/sign-out" />}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          render={<a href="/api/auth/sign-out" />}
+        >
           <LogOut className="mr-2 size-4" />
           Sign Out
         </DropdownMenuItem>

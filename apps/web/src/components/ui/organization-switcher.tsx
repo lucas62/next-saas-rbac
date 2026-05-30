@@ -1,7 +1,8 @@
-'use client'
-
 import { ChevronsUpDown, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
+
+import { getOrganization } from '@/http/get-organization'
+import { getInitials } from '@/utils/get-initials'
 
 import { Avatar, AvatarFallback, AvatarImage } from './avatar'
 import {
@@ -14,7 +15,9 @@ import {
   DropdownMenuTrigger,
 } from './dropdown-menu'
 
-export function OrganizationSwitcher() {
+export async function OrganizationSwitcher() {
+  const { organizations } = await getOrganization()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="focus-visible:ring-primary hover:bg-muted flex w-[168px] cursor-pointer items-center gap-2 rounded p-1 text-sm font-medium outline-none focus-visible:ring-2">
@@ -29,39 +32,32 @@ export function OrganizationSwitcher() {
       >
         <DropdownMenuGroup>
           <DropdownMenuLabel>Organizations</DropdownMenuLabel>
-          <DropdownMenuItem>
-            <Avatar className="mr-2 size-5">
-              <AvatarImage
-                src="https://github.com/shadcn.png"
-                alt={`avatar-1`}
-              />
-              <AvatarFallback>O1</AvatarFallback>
-            </Avatar>
-            <span className="line-clamp-1">Organization 1</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Avatar className="mr-2 size-4">
-              <AvatarImage
-                src="https://github.com/shadcn.png"
-                alt={`avatar-2`}
-              />
-              <AvatarFallback>O2</AvatarFallback>
-            </Avatar>
-            <span className="line-clamp-1">Organization 2</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Avatar className="mr-2 size-4">
-              <AvatarImage
-                src="https://github.com/shadcn.png"
-                alt={`avatar-3`}
-              />
-              <AvatarFallback>O3</AvatarFallback>
-            </Avatar>
-            <span className="line-clamp-1">Organization 3</span>
-          </DropdownMenuItem>
+          {organizations.map((organization) => (
+            <DropdownMenuItem
+              className="cursor-pointer"
+              key={organization.slug}
+              render={<Link href={`/org/${organization.slug}`} />}
+            >
+              <Avatar className="mr-2 size-5">
+                {organization.avatarUrl && (
+                  <AvatarImage
+                    src={organization.avatarUrl}
+                    alt={`${organization.slug} avatar`}
+                  />
+                )}
+                <AvatarFallback>
+                  {getInitials(organization.name)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="line-clamp-1">{organization.name}</span>
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/create-organization" />}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          render={<Link href="/create-organization" />}
+        >
           <PlusCircle className="mr-2 size-4" />
           Create new
         </DropdownMenuItem>
