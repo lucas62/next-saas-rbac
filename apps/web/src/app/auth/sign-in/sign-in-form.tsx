@@ -4,6 +4,7 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import githubIcon from 'public/github-icon.svg'
 import { useTransition } from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -38,8 +39,8 @@ export function SignInForm() {
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
     signInWithEmailAndPassword,
-    async () => {
-      await router.push('/')
+    () => {
+      router.push('/')
     },
   )
 
@@ -119,9 +120,9 @@ export function SignInForm() {
           <Loader2 className="mr-2 size-4 animate-spin" />
         ) : (
           <Image
-            src="/github-icon.svg"
-            width={16}
-            height={16}
+            src={githubIcon}
+            width={32}
+            height={32}
             alt="Github"
             className="mr-2 size-4 dark:invert"
           />
