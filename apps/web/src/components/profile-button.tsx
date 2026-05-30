@@ -24,8 +24,12 @@ export async function ProfileButton() {
           <span className="text-muted-foreground text-xs">{email}</span>
         </div>
         <Avatar>
-          {avatarUrl && <AvatarImage alt="avatar" src={avatarUrl} />}
-          <AvatarFallback>{getInitials(name)}</AvatarFallback>
+          {avatarUrl && (
+            <AvatarImage alt="avatar" src={avatarUrl} className="size-9" />
+          )}
+          <AvatarFallback className="size-9">
+            {getInitials(name)}
+          </AvatarFallback>
         </Avatar>
 
         <ChevronDown className="text-muted-foreground size-4" />
