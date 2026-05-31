@@ -27,6 +27,7 @@
     "@saas/eslint-config": "*",
     "@saas/prettier": "*",
     "@saas/tsconfig": "*",
+    "@saas/auth": "*",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^20",
     "@types/react": "^18",
