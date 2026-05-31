@@ -2,6 +2,7 @@
 
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +14,12 @@ import {
 
 export function ThemeSwitcher() {
   const { setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -20,7 +27,9 @@ export function ThemeSwitcher() {
           <Button variant="ghost" size="icon" className="cursor-pointer" />
         }
       >
-        {resolvedTheme === 'dark' ? (
+        {!mounted ? (
+          <Moon className="size-4" />
+        ) : resolvedTheme === 'dark' ? (
           <Moon className="size-4" />
         ) : (
           <Sun className="size-4" />

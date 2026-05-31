@@ -11,15 +11,14 @@ export const env = createEnv({
 
     JWT_SECRET: z.string(),
   },
-  client: {
-    NEXT_PUBLIC_API_URL: z.url(),
-    NEXT_PUBLIC_GITHUB_CLIENT_ID: z.string(),
-    NEXT_PUBLIC_JWT_SECRET: z.string(),
-  },
+  client: {},
   shared: {
     NODE_ENV: z
       .enum(['development', 'production', 'test'])
       .default('development'),
+    NEXT_PUBLIC_API_URL: z.url(),
+    NEXT_PUBLIC_GITHUB_CLIENT_ID: z.string(),
+    NEXT_PUBLIC_JWT_SECRET: z.string(),
   },
   runtimeEnv: {
     SERVER_PORT: process.env.SERVER_PORT,
