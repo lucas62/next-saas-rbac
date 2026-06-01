@@ -39,8 +39,8 @@ export function SignUpForm() {
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {success === false && message && (
-          <Alert>
-            <AlertTriangle />
+          <Alert variant="destructive">
+            <AlertTriangle className="size-4" />
             <AlertTitle>Sign up failed!</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>
