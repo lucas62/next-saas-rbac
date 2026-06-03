@@ -1,7 +1,12 @@
+import Header from '@/components/header'
+
 export default async function Projects() {
   return (
-    <div className="mx-auto flex max-w-[1200px] flex-col gap-6 py-4">
-      <h1>Projects</h1>
+    <div className="space-y-4 py-4">
+      <Header />
+      <main className="mx-auto w-full max-w-[1200px] space-y-4 px-4">
+        <h1>Projects</h1>
+      </main>
     </div>
   )
 }
