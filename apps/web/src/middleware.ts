@@ -7,16 +7,27 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
   if (pathname.startsWith('/org')) {
-    const [, , slug] = pathname.split('/')
+    const [, , slug, , project] = pathname.split('/')
 
     if (!slug) {
       return NextResponse.redirect(new URL('/', request.url))
     }
 
     response.cookies.set('org', slug)
+
+    if (project) {
+      response.cookies.set('project', project)
+    } else {
+      if (request.cookies.has('project')) {
+        response.cookies.delete('project')
+      }
+    }
   } else {
     if (request.cookies.has('org')) {
       response.cookies.delete('org')
+    }
+    if (request.cookies.has('project')) {
+      response.cookies.delete('project')
     }
   }
 

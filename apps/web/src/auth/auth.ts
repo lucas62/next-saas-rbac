@@ -14,6 +14,11 @@ export async function getCurrentOrg() {
   return cookieStore.get('org')?.value ?? null
 }
 
+export async function getCurrentProject() {
+  const cookieStore = await cookies()
+  return cookieStore.get('project')?.value ?? null
+}
+
 export async function getCurrentMembership() {
   const org = await getCurrentOrg()
 
