@@ -18,14 +18,14 @@ export default function ProjectForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       {success === false && message && (
-        <Alert variant="destructive">
+        <Alert className="mt-4" variant="destructive">
           <AlertTriangle className="size-4" />
           <AlertTitle>Save project failed!</AlertTitle>
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       )}
       {success === true && message && (
-        <Alert variant="success">
+        <Alert className="mt-4" variant="success">
           <CheckCircle className="size-4" />
           <AlertTitle>Success!</AlertTitle>
           <AlertDescription>{message}</AlertDescription>

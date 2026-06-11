@@ -3,9 +3,8 @@
 import { HTTPError } from 'ky'
 import { z } from 'zod'
 
-import { getCurrentOrg, getCurrentProject } from '@/auth/auth'
+import { getCurrentOrg } from '@/auth/auth'
 import { createProject as createProjectHTTP } from '@/http/create-project'
-import { getProjects } from '@/http/get-projects'
 
 const projectSchema = z.object({
   name: z
@@ -30,20 +29,11 @@ export async function handleSaveProject(data: FormData) {
   if (!currentOrg)
     return { success: false, message: 'Organization not found', errors: null }
 
-  const { projects } = await getProjects(currentOrg)
-  const currentProjectSlug = await getCurrentProject()
-
-  const currentProject = projects.find(
-    (project) => project.slug === currentProjectSlug,
-  )
-
-  if (!currentProject)
-    return { success: false, message: 'Project not found', errors: null }
-
   const { name, description } = result.data
 
   try {
-    await createProjectHTTP(currentProject.slug, {
+    await createProjectHTTP({
+      orgSlug: currentOrg,
       name,
       description,
     })

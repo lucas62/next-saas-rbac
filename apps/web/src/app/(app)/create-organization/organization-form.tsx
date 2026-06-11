@@ -22,14 +22,14 @@ export function OrganizationForm() {
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {success === false && message && (
-          <Alert variant="destructive">
+          <Alert className="mt-4" variant="destructive">
             <AlertTriangle className="size-4" />
             <AlertTitle>Save organization failed!</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>
         )}
         {success === true && message && (
-          <Alert variant="success">
+          <Alert className="mt-4" variant="success">
             <CheckCircle className="size-4" />
             <AlertTitle>Success!</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
