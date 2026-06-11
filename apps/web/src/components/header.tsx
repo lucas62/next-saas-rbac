@@ -2,6 +2,7 @@ import { Slash } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import logo from 'public/logo.svg'
+import { Suspense } from 'react'
 
 import { ability } from '@/auth/auth'
 
@@ -23,12 +24,24 @@ export default async function Header() {
 
         <Slash className="text-border size-4 -rotate-[24deg]" />
 
-        <OrganizationSwitcher />
+        <Suspense
+          fallback={
+            <div className="bg-muted h-7 w-[168px] animate-pulse rounded" />
+          }
+        >
+          <OrganizationSwitcher />
+        </Suspense>
 
         {permissions?.can('get', 'Project') && (
           <>
             <Slash className="text-border size-4 -rotate-[24deg]" />
-            <ProjectSwitcher />
+            <Suspense
+              fallback={
+                <div className="bg-muted h-7 w-[168px] animate-pulse rounded" />
+              }
+            >
+              <ProjectSwitcher />
+            </Suspense>
           </>
         )}
       </div>

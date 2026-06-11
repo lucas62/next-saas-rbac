@@ -36,7 +36,7 @@ export async function ProjectSwitcher() {
           </span>
         ) : (
           <>
-            <Avatar className="mr-2 size-4">
+            <Avatar className="size-4">
               {currentProject.avatarUrl && (
                 <AvatarImage
                   src={currentProject.avatarUrl}

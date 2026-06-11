@@ -17,6 +17,7 @@ import { getInitials } from '@/utils/get-initials'
 
 export async function OrganizationSwitcher() {
   const currentOrg = await getCurrentOrg()
+
   const { organizations } = await getOrganization()
 
   const currentOrganization = organizations.find(
@@ -30,7 +31,7 @@ export async function OrganizationSwitcher() {
           <span className="text-muted-foreground">Select Organization</span>
         ) : (
           <>
-            <Avatar className="mr-2 size-4">
+            <Avatar className="size-4">
               {currentOrganization.avatarUrl && (
                 <AvatarImage
                   src={currentOrganization.avatarUrl}
