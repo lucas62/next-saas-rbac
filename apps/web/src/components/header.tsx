@@ -16,7 +16,7 @@ export default async function Header() {
   const permissions = await ability()
 
   return (
-    <div className="max-w[1200px] mx-auto flex items-center justify-between border-b px-4 pb-2">
+    <div className="max-w[1200px] mx-auto flex items-center justify-between px-4 pb-2">
       <div className="flex items-center gap-2">
         <Link className="cursor-pointer" href="/">
           <Image src={logo} alt="logo" className="size-7" />
